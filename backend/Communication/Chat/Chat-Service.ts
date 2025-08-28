@@ -156,3 +156,174 @@ export class ChatService {
         return conv;
     }
 }
+
+
+
+
+// @Injectable()
+// export class ChatService {
+//     constructor(
+//         @InjectModel(Conversation.name) private convModel: Model<Conversation>,
+//         @InjectModel(Message.name) private msgModel: Model<Message>,
+//     ) {}
+//
+//     async isParticipant(conversationId: string, userId: string) {
+//         const c = await this.convModel.findById(conversationId).select('_id participants');
+//         if (!c) throw new NotFoundException('Conversation not found');
+//         const ok = c.participants.some(p => p.toString() === userId);
+//         if (!ok) throw new ForbiddenException('Not a participant');
+//         return c;
+//     }
+//
+//     async createConversation(participants: string[], isGroup?: boolean, name?: string) {
+//         const unique = [...new Set(participants)].map(id => new Types.ObjectId(id));
+//         const doc = await this.convModel.create({ participants: unique, isGroup: !!isGroup, name: name ?? null });
+//         return doc;
+//     }
+//
+//     async listConversations(userId: string, limit = 20, cursor?: string) {
+//         const filter = { participants: new Types.ObjectId(userId) };
+//         const query = this.convModel.find(filter).sort({ lastMessageAt: -1 }).limit(limit);
+//         if (cursor) query.where('_id').lt(cursor);
+//         return query.lean();
+//     }
+//
+//     async sendMessage(conversationId: string, senderId: string, content?: string, attachmentUrl?: string) {
+//         const conv = await this.isParticipant(conversationId, senderId);
+//         const msg = await this.msgModel.create({
+//             conversation: conv._id,
+//             sender: new Types.ObjectId(senderId),
+//             content: content ?? '',
+//             attachmentUrl: attachmentUrl ?? null,
+//             status: 'sent',
+//         });
+//         await this.convModel.findByIdAndUpdate(conv._id, { lastMessage: msg._id, lastMessageAt: new Date() });
+//         return msg;
+//     }
+//
+//     async listMessages(conversationId: string, userId: string, limit = 30, before?: string) {
+//         await this.isParticipant(conversationId, userId);
+//         const q = this.msgModel.find({ conversation: conversationId }).sort({ _id: -1 }).limit(limit);
+//         if (before) q.where('_id').lt(before);
+//         const items = await q.lean();
+//         return items.reverse();
+//     }
+//
+//     async markRead(conversationId: string, userId: string, upToMessageId?: string) {
+//         await this.isParticipant(conversationId, userId);
+//         const filter: any = { conversation: conversationId, readBy: { $ne: new Types.ObjectId(userId) } };
+//         if (upToMessageId) filter._id = { $lte: new Types.ObjectId(upToMessageId) };
+//         await this.msgModel.updateMany(filter, { $push: { readBy: new Types.ObjectId(userId) }, $set: { status: 'read' } });
+//         // Return unread count after update
+//         const remaining = await this.msgModel.countDocuments({ conversation: conversationId, readBy: { $ne: userId } });
+//         return { unreadRemaining: remaining };
+//     }
+// }
+
+
+// import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+// import { InjectModel } from '@nestjs/mongoose';
+// import { Model, Types } from 'mongoose';
+// import { Conversation, ConversationDocument } from '../../Database/chat/conversation.schema';
+// import { Message, MessageDocument } from '../../Database/chat/message.schema';
+// import { CreateConversationDto, SendMessageDto } from '../../dto/chat/chat.dto';
+// import { ChatGateway } from './chat.gateway';
+//
+// @Injectable()
+// export class ChatService {
+//     constructor(
+//         @InjectModel(Conversation.name) private readonly convModel: Model<ConversationDocument>,
+//         @InjectModel(Message.name) private readonly msgModel: Model<MessageDocument>,
+//         private readonly gateway: ChatGateway,
+//     ) {}
+//
+//     private async ensureMembership(conversationId: string, userId: string) {
+//         const c = await this.convModel.findById(conversationId);
+//         if (!c) throw new NotFoundException('Conversation not found');
+//         const ok = c.participants.some(p => String(p) === userId);
+//         if (!ok) throw new ForbiddenException('Not a member');
+//         return c;
+//     }
+//
+//     async createConversation(dto: CreateConversationDto, creatorId: string) {
+//         const ids = new Set<string>(dto.participants ?? []);
+//         ids.add(creatorId);
+//         const participants = [...ids].map(id => new Types.ObjectId(id));
+//
+//         const c = await this.convModel.create({
+//             participants,
+//             isGroup: !!dto.isGroup,
+//             groupName: dto.groupName,
+//             courseId: dto.courseId ? new Types.ObjectId(dto.courseId) : undefined,
+//             lastReadBy: {},
+//         });
+//         return c;
+//     }
+//
+//     async listMyConversations(userId: string, limit = 20, cursor?: string) {
+//         const filter = { participants: new Types.ObjectId(userId) };
+//         const q = this.convModel.find(filter).sort({ lastMessageAt: -1, _id: -1 }).limit(limit);
+//         if (cursor) q.where('_id').lt(new Types.ObjectId(cursor));
+//         return q.lean();
+//     }
+//
+//     async sendMessage(senderId: string, dto: SendMessageDto) {
+//         if (!dto.content && !dto.attachmentUrl) {
+//             throw new ForbiddenException('Empty message');
+//         }
+//         const c = await this.ensureMembership(dto.conversationId, senderId);
+//
+//         const msg = await this.msgModel.create({
+//             conversation: c._id,
+//             sender: new Types.ObjectId(senderId),
+//             content: dto.content?.trim(),
+//             attachmentUrl: dto.attachmentUrl ?? undefined,
+//             readBy: [], // readers (optional)
+//         });
+//
+//         await this.convModel.findByIdAndUpdate(c._id, {
+//             $set: { lastMessage: msg._id, lastMessageAt: msg.createdAt },
+//         });
+//
+//         const payload = {
+//             id: String(msg._id),
+//             conversationId: String(c._id),
+//             sender: senderId,
+//             content: msg.content,
+//             attachmentUrl: msg.attachmentUrl,
+//             createdAt: msg.createdAt,
+//         };
+//
+//         // realtime to conversation room + each participant
+//         this.gateway.emitToConversation(String(c._id), 'message:new', payload);
+//         c.participants.forEach(uid => this.gateway.emitToUser(String(uid), 'message:new', payload));
+//
+//         return payload;
+//     }
+//
+//     async listMessages(conversationId: string, userId: string, limit = 30, before?: string) {
+//         await this.ensureMembership(conversationId, userId);
+//         const filter: any = { conversation: new Types.ObjectId(conversationId) };
+//         if (before) filter._id = { $lt: new Types.ObjectId(before) };
+//         const items = await this.msgModel.find(filter).sort({ _id: -1 }).limit(limit).lean();
+//         return items.reverse(); // chronological
+//     }
+//
+//     // Set user's lastRead pointer; cheap unread calculation
+//     async markRead(conversationId: string, userId: string, upToMessageId?: string) {
+//         await this.ensureMembership(conversationId, userId);
+//         const update: any = {};
+//         if (upToMessageId) {
+//             update.$set = { [`lastReadBy.${userId}`]: new Types.ObjectId(upToMessageId) };
+//         } else {
+//             // if not provided, set to latest message
+//             const latest = await this.msgModel.findOne({ conversation: conversationId }).sort({ _id: -1 }).lean();
+//             if (latest) update.$set = { [`lastReadBy.${userId}`]: latest._id };
+//         }
+//         if (update.$set) {
+//             await this.convModel.findByIdAndUpdate(conversationId, update);
+//             this.gateway.emitToConversation(conversationId, 'message:read', { conversationId, userId, upToMessageId });
+//         }
+//         return { ok: true };
+//     }
+// }

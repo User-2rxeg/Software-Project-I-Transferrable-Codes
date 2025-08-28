@@ -4,16 +4,18 @@ import {
     Param, Body, Query, UseGuards, ParseIntPipe
 } from '@nestjs/common';
 
-import { CreateAuditLogDto, UpdateAuditLogDto } from '../DTO/AuditLog.DTO';
-import { JwtAuthGuard } from '../Authentication/Guards/AuthGuard';
-import { RolesGuard } from '../Authentication/Guards/RolesGuard';
-import { Roles } from '../Authentication/Decorators/Roles-Decorator';
+
 import { UserRole } from '../Database/User';
 import {AuditLogService} from "./Audit-Log.Service";
+import {CreateAuditLogDto, UpdateAuditLogDto} from "../Validators/Audit-Log.Validator";
+import {RolesGuard} from "../Authentication/Guards/Roles-Guard";
+import {JwtAuthGuard} from "../Authentication/Guards/AuthGuard";
+import {Roles} from "../Authentication/Decorators/Role-Decorator";
 
 @Controller('audit')
 
 @Roles(UserRole.ADMIN)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class AuditLogController {
     constructor(private readonly audit: AuditLogService) {}
 

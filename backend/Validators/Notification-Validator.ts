@@ -30,3 +30,26 @@ export class UpdateNotificationDto {
     @IsOptional()
     courseId?: string;
 }
+
+
+//export class CreateNotificationDto {
+    //@IsMongoId()
+    //user!: string;
+
+    //@IsString() @IsIn(['system', 'message', 'course', 'alert'])
+    //type!: 'system' | 'message' | 'course' | 'alert';
+
+    //@IsString()
+    //title!: string;
+
+    //@IsOptional() @IsString()
+    //body?: string;
+
+    //@IsOptional() @IsString()
+    //link?: string;
+
+    //@IsOptional()
+  //  data?: Record<string, any>;
+//}
+
+

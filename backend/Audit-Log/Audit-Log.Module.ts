@@ -1,15 +1,17 @@
 
 import {Global, Module} from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AuditLog, AuditLogSchema } from '../Database/AuditLog';
+
 import {AuditLogService} from "./Audit-Log.Service";
 import {AuditLogController} from "./Audit-Log.Controller";
-import {AuthModule} from "../Authentication/AuthModule";
+import {AuditLog, AuditLogSchema} from "../Database/Audit-Log";
+import {AuthModule} from "../Authentication/Module/Authentication-Module";
+
 
 @Global()
 @Module({
     imports: [MongooseModule.forFeature([{ name: AuditLog.name, schema: AuditLogSchema }]),
-
+        AuthModule,
     ],
 
     providers: [AuditLogService],

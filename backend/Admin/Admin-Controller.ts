@@ -45,31 +45,7 @@ export class AdminController {
         return this.users.updateUserRole(id, body.role);
     }
 
-    // --- COURSES ---
-    @Get('courses')
-    listCourses(
-        @Query('q') q?: string,
-        @Query('status') status?: 'active'|'archived'|'draft',
-        @Query('page') page?: string,
-        @Query('limit') limit?: string,
-    ) {
-        return this.admin.listCourses({ q, status, page: Number(page), limit: Number(limit) });
-    }
 
-    @Patch('courses/:id/status')
-    updateCourseStatus(@Param('id') id: string, @Body() body: UpdateCourseStatusBodyDto) {
-        return this.admin.updateCourseStatus(id, body.status);
-    }
-    @Get('enrollments')
-    enrollments(
-        @Query('q') q?: string,
-        @Query('courseId') courseId?: string,
-        @Query('userId') userId?: string,
-        @Query('page') page?: string,
-        @Query('limit') limit?: string,
-    ) {
-        return this.admin.listEnrollments({ q, courseId, userId, page: Number(page), limit: Number(limit) });
-    }
 
     // --- ANNOUNCEMENTS ---
     @Post('announce/all')
@@ -81,29 +57,53 @@ export class AdminController {
     announceRole(@Body() body: AnnounceRoleDto, @CurrentUser() admin: JwtPayload) {
         return this.admin.announceRole(admin.sub, body.role, body.message);
     }
-
-    @Post('announce/course')
-    announceCourse(@Body() body: AnnounceCourseDto, @CurrentUser() admin: JwtPayload) {
-        return this.admin.announceCourse(admin.sub, body.courseId, body.message, body.to ?? 'all');
-    }
-
-    @Patch('courses/:id/archive')
-    archiveCourse(@Param('id') id: string, @CurrentUser() admin: JwtPayload) {
-        return this.admin.archiveCourse(id, admin.sub);
-    }
-
-    // Remove (hard delete) a course
-    @Delete('courses/:id')
-    removeCourse(@Param('id') id: string, @CurrentUser() admin: JwtPayload) {
-        return this.admin.removeCourse(id, admin.sub);
-    }
-
-    // (optional) Bulk-archive courses created at/before a given date (YYYY-MM-DD or ISO)
-    @Post('courses/archive-outdated')
-    archiveOutdated(@Query('before') before: string, @CurrentUser() admin: JwtPayload) {
-        return this.admin.archiveOutdated(before, admin.sub);
-    }
-
-// Quick views for security events
-
+    // Quick views for security events
 }
+
+// --- COURSES ---
+//@Get('courses')
+//listCourses(
+//@Query('q') q?: string,
+//@Query('status') status?: 'active'|'archived'|'draft',
+//@Query('page') page?: string,
+//  @Query('limit') limit?: string,
+//) {
+//  return this.admin.listCourses({ q, status, page: Number(page), limit: Number(limit) });
+//}
+
+//@Patch('courses/:id/status')
+//updateCourseStatus(@Param('id') id: string, @Body() body: UpdateCourseStatusBodyDto) {
+//  return this.admin.updateCourseStatus(id, body.status);
+//}
+//@Get('enrollments')
+//enrollments(
+//  @Query('q') q?: string,
+//@Query('courseId') courseId?: string,
+//@Query('userId') userId?: string,
+//@Query('page') page?: string,
+//@Query('limit') limit?: string,
+//) {
+//  return this.admin.listEnrollments({ q, courseId, userId, page: Number(page), limit: Number(limit) });
+// }
+
+//@Post('announce/course')
+//announceCourse(@Body() body: AnnounceCourseDto, @CurrentUser() admin: JwtPayload) {
+//  return this.admin.announceCourse(admin.sub, body.courseId, body.message, body.to ?? 'all');
+//}
+
+//@Patch('courses/:id/archive')
+//archiveCourse(@Param('id') id: string, @CurrentUser() admin: JwtPayload) {
+//  return this.admin.archiveCourse(id, admin.sub);
+//}
+
+// Remove (hard delete) a course
+//@Delete('courses/:id')
+//removeCourse(@Param('id') id: string, @CurrentUser() admin: JwtPayload) {
+//  return this.admin.removeCourse(id, admin.sub);
+//}
+
+// (optional) Bulk-archive courses created at/before a given date (YYYY-MM-DD or ISO)
+//@Post('courses/archive-outdated')
+//archiveOutdated(@Query('before') before: string, @CurrentUser() admin: JwtPayload) {
+//  return this.admin.archiveOutdated(before, admin.sub);
+//}

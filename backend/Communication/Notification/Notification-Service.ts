@@ -134,3 +134,73 @@ export class NotificationService {
             .exec();
     }
 }
+
+
+// import { Injectable } from '@nestjs/common';
+// import { InjectModel } from '@nestjs/mongoose';
+// import { Notification } from '../Database/notifications/notification.schema';
+// import { Model, Types } from 'mongoose';
+//
+// @Injectable()
+// export class NotificationsService {
+//     constructor(@InjectModel(Notification.name) private notifModel: Model<Notification>) {}
+//
+//     async createFor(userId: string, payload: { type: string; title: string; body?: string; link?: string; data?: any }) {
+//         const doc = await this.notifModel.create({
+//             user: new Types.ObjectId(userId),
+//             type: payload.type,
+//             title: payload.title,
+//             body: payload.body ?? '',
+//             link: payload.link ?? null,
+//             data: payload.data ?? {},
+//         });
+//         return doc;
+//     }
+//
+//     async list(userId: string, limit = 20, cursor?: string, unreadOnly?: boolean) {
+//         const filter: any = { user: new Types.ObjectId(userId) };
+//         if (unreadOnly) filter.readAt = null;
+//         const q = this.notifModel.find(filter).sort({ _id: -1 }).limit(limit);
+//         if (cursor) q.where('_id').lt(cursor);
+//         return q.lean();
+//     }
+//
+//     async markRead(userId: string, notifIds: string[]) {
+//         const ids = notifIds.map(id => new Types.ObjectId(id));
+//         await this.notifModel.updateMany({ _id: { $in: ids }, user: userId, readAt: null }, { $set: { readAt: new Date() } });
+//         const unread = await this.notifModel.countDocuments({ user: userId, readAt: null });
+//         return { unread };
+//     }
+//
+//     async countUnread(userId: string) {
+//         const unread = await this.notifModel.countDocuments({ user: userId, readAt: null });
+//         return { unread };
+//     }
+// }
+//
+//
+//
+// NotificationService: audit “actor” bug + casting & bulk read
+//
+// In deleteNotification, you log userId as the recipient; should be the actor (the caller).
+//
+// When querying by recipientId, cast to ObjectId.
+
+// // deleteNotification: use actor, not recipient
+// await this.auditModel.create({
+//     notificationId: notification._id,
+//     eventType: 'DELETED',
+//     userId: new Types.ObjectId(userId), // <-- actor, not notification.recipientId
+// });
+//
+// // getUserNotifications: cast
+// return this.notificationModel
+//     .find({ recipientId: new Types.ObjectId(userId) })
+//     .sort({ createdAt: -1 })
+//     .exec();
+//
+// // markAllAsRead: cast & filter correctly
+// await this.notificationModel.updateMany(
+//     { recipientId: new Types.ObjectId(userId), read: false },
+//     { $set: { read: true } },
+// );

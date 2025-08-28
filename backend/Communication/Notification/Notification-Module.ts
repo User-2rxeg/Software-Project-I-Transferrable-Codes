@@ -27,3 +27,48 @@ import {NotificationController} from "./Notification-Controller";
     exports: [NotificationService],
 })
 export class NotificationModule {}
+
+
+
+//@Module({
+//     imports: [
+//         forwardRef(() => AuthModule),
+//         MongooseModule.forFeature([{ name: Notification.name, schema: NotificationSchema }]),
+//     ],
+//     providers: [NotificationsService],
+//     controllers: [NotificationsController],
+//     exports: [NotificationsService],
+// })
+// export class NotificationsModule {}
+
+//
+// import { Module } from '@nestjs/common';
+// import { MongooseModule } from '@nestjs/mongoose';
+// import { JwtModule } from '@nestjs/jwt';
+//
+// import { Notification, NotificationSchema } from '../../Database/notifications/notification.schema';
+// import { NotificationAuditLog, NotificationAuditLogSchema } from '../../Database/notifications/notification-audit.schema';
+// import { User, UserSchema } from '../../Database/user.schema';
+// import { Course, CourseSchema } from '../../Database/course.schema';
+//
+// import { NotificationsService } from './notifications.service';
+// import { NotificationsController } from './notifications.controller';
+// import { NotificationGateway } from './notifications.gateway';
+// import { AuthModule } from '../../Authentication/AuthModule';
+//
+// @Module({
+//     imports: [
+//         MongooseModule.forFeature([
+//             { name: Notification.name, schema: NotificationSchema },
+//             { name: NotificationAuditLog.name, schema: NotificationAuditLogSchema },
+//             { name: User.name, schema: UserSchema },
+//             { name: Course.name, schema: CourseSchema },
+//         ]),
+//         AuthModule,
+//         JwtModule.register({}), // uses same provider/secret exported by AuthModule
+//     ],
+//     controllers: [NotificationsController],
+//     providers: [NotificationsService, NotificationGateway],
+//     exports: [NotificationsService],
+// })
+// export class NotificationsModule {}

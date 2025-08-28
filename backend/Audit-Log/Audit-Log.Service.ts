@@ -30,6 +30,30 @@ export class AuditLogService {
         });
     }
 
+   // async findAll(
+     //   page = 1,
+       // limit = 20,
+        //filters?: { userId?: string; event?: string; from?: string; to?: string },
+    //) {
+      //  const skip = (page - 1) * limit;
+        //const query: FilterQuery<AuditLogDocument> = {};
+
+        //if (filters?.userId) query.userId = filters.userId;
+        //if (filters?.event) query.event = filters.event;
+        //if (filters?.from || filters?.to) {
+          //  query.timestamp = {};
+            //if (filters.from) query.timestamp.$gte = new Date(filters.from);
+           // if (filters.to) query.timestamp.$lte = new Date(filters.to);
+        //}
+
+        //const [items, total] = await Promise.all([
+          //  this.auditModel.find(query).sort({ timestamp: -1 }).skip(skip).limit(limit).exec(),
+           // this.auditModel.countDocuments(query).exec(),
+        //]);
+
+        //return { items, total, page, limit };
+    //}
+
     async findAll(
         page = 1,
         limit = 20,
@@ -38,36 +62,51 @@ export class AuditLogService {
         const skip = (page - 1) * limit;
         const query: FilterQuery<AuditLogDocument> = {};
 
-        if (filters?.userId) query.userId = filters.userId;
+
+        if (filters?.userId) query.userId = filters.userId as any;
         if (filters?.event) query.event = filters.event;
         if (filters?.from || filters?.to) {
-            query.timestamp = {};
-            if (filters.from) query.timestamp.$gte = new Date(filters.from);
-            if (filters.to) query.timestamp.$lte = new Date(filters.to);
+            query.timestamp = {} as any;
+            if (filters.from) (query.timestamp as any).$gte = new Date(filters.from);
+            if (filters.to) (query.timestamp as any).$lte = new Date(filters.to);
         }
 
+
         const [items, total] = await Promise.all([
-            this.auditModel.find(query).sort({ timestamp: -1 }).skip(skip).limit(limit).exec(),
+            this.auditModel
+                .find(query)
+                .sort({ timestamp: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean()
+                .exec(),
             this.auditModel.countDocuments(query).exec(),
         ]);
+
 
         return { items, total, page, limit };
     }
 
     async findOne(id: string) {
-        const doc = await this.auditModel.findById(id).exec();
+        const doc = await this.auditModel.findById(id).lean().exec();
+        // const doc = await this.auditModel.findById(id).exec();
         if (!doc) throw new NotFoundException('Audit log not found');
         return doc;
     }
 
     async update(id: string, dto: UpdateAuditLogDto) {
         const doc = await this.auditModel.findByIdAndUpdate(id, dto, { new: true }).exec();
+       //const doc = await this.auditModel
+        // .findByIdAndUpdate(id, dto, { new: true })
+        // .lean()
+        // .exec();
         if (!doc) throw new NotFoundException('Audit log not found');
         return doc;
     }
 
     async delete(id: string) {
-        const res = await this.auditModel.findByIdAndDelete(id).exec();
+        //const res = await this.auditModel.findByIdAndDelete(id).lean().exec();
+        const res = await this.auditModel.findByIdAndDelete(id).exec()
         if (!res) throw new NotFoundException('Audit log not found');
         return { deleted: true };
     }

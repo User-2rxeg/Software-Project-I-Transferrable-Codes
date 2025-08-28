@@ -42,19 +42,36 @@ export class AdminService {
 
 
 
-    async announceAll(adminId: string, message: string) {
+    //async announceAll(adminId: string, message: string) {
         // send to all users (chunked to avoid huge fan-out)
+        //const cursor = this.userModel.find({}, { _id: 1 }).cursor();
+        //for await (const u of cursor) {
+          //  await this.notifications.createNotification({ recipientId: String(u._id), type: 'announcement', message }, adminId);
+        //}
+      //  return { ok: true };
+    //}
+
+    //async announceRole(adminId: string, role: UserRole, message: string) {
+        //const cursor = this.userModel.find({ role }, { _id: 1 }).cursor();
+        //for await (const u of cursor) {
+         //   await this.notifications.createNotification({ recipientId: String(u._id), type: 'announcement', message }, adminId);
+       // }
+      //  return { ok: true };
+    //}
+
+    async announceAll(adminId: string, message: string) {
         const cursor = this.userModel.find({}, { _id: 1 }).cursor();
         for await (const u of cursor) {
-            await this.notifications.createNotification({ recipientId: String(u._id), type: 'announcement', message }, adminId);
+            await this.notifications.createNotification({ recipientId: String((u as any)._id), type: 'announcement', message }, adminId);
         }
         return { ok: true };
     }
 
+
     async announceRole(adminId: string, role: UserRole, message: string) {
         const cursor = this.userModel.find({ role }, { _id: 1 }).cursor();
         for await (const u of cursor) {
-            await this.notifications.createNotification({ recipientId: String(u._id), type: 'announcement', message }, adminId);
+            await this.notifications.createNotification({ recipientId: String((u as any)._id), type: 'announcement', message }, adminId);
         }
         return { ok: true };
     }
