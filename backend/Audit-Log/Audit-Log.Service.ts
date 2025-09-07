@@ -1,8 +1,8 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model } from 'mongoose';
-import {AuditLog, AuditLogDocument} from "../Database/Audit-Log";
+import {FilterQuery, Model, Types} from 'mongoose';
+import {AuditEvent, AuditLog, AuditLogDocument} from "../Database/Audit-Log";
 import {CreateAuditLogDto, UpdateAuditLogDto} from "../Validators/Audit-Log.Validator";
 
 
@@ -13,15 +13,29 @@ export class AuditLogService {
         private readonly auditModel: Model<AuditLogDocument>,
     ) {}
 
-    // convenience helper
     async log(event: string, userId?: string, details?: Record<string, any>) {
         return this.auditModel.create({
             event,
-            userId,
+            userId: userId ? new Types.ObjectId(userId) : undefined,
             details: details ?? {},
             timestamp: new Date(),
         });
     }
+
+    // alias with stronger typing if you adopt the enum
+    async record(event: AuditEvent, userId?: string, details?: Record<string, any>) {
+        return this.log(String(event), userId, details);
+    }
+
+    // // convenience helper
+    // async log(event: string, userId?: string, details?: Record<string, any>) {
+    //     return this.auditModel.create({
+    //         event,
+    //         userId,
+    //         details: details ?? {},
+    //         timestamp: new Date(),
+    //     });
+    // }
 
     async create(dto: CreateAuditLogDto) {
         return this.auditModel.create({

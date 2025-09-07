@@ -3,30 +3,82 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 
 import { Notification, NotificationSchema } from '../../Database/Notification';
-import {NotificationAuditLog, NotificationAuditLogSchema} from "../../Database/Notification-Log";
-import {User, UserSchema} from "../../Database/User";
-import {AuthModule} from "../../Authentication/Module/Authentication-Module";
-import {NotificationService} from "./Notification-Service";
-import {NotificationGateway} from "../Gateways/Notification-Gateway";
-import {NotificationController} from "./Notification-Controller";
+import { NotificationAuditLog, NotificationAuditLogSchema } from '../../Database/Notification-Log';
+import { User, UserSchema } from '../../Database/User';
 
+import { AuthModule } from '../../Authentication/Module/Authentication-Module';
+
+
+import { NotificationService } from './Notification-Service';
+import { NotificationGateway } from '../Gateways/Notification-Gateway';
+import { NotificationController } from './Notification-Controller';
+import { NotificationAuditController } from '../Notification-Log/Notification-Log.Controller';
+import { NotificationAuditService } from '../Notification-Log/Notification-Log.Service';
+import {MailModule} from "../../Authentication/Email/Email-Module";
 
 @Module({
     imports: [
         MongooseModule.forFeature([
+            // Use the class token so it matches @InjectModel(Notification.name)
             { name: Notification.name, schema: NotificationSchema },
             { name: NotificationAuditLog.name, schema: NotificationAuditLogSchema },
-            //{ name: Course.name, schema: CourseSchema },
             { name: User.name, schema: UserSchema },
         ]),
         AuthModule,
-        JwtModule.register({}), // ensure same secret as HTTP auth via AuthModule or env
+        MailModule,                 // <-- make MailService available here
+        JwtModule.register({}),     // optional if you need JWT inside this module
     ],
-    providers: [NotificationService, NotificationGateway],
-    controllers: [NotificationController],
+    providers: [NotificationService, NotificationGateway, NotificationAuditService],
+    controllers: [NotificationController, NotificationAuditController],
     exports: [NotificationService],
 })
 export class NotificationModule {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import { Module } from '@nestjs/common';
+// import { MongooseModule } from '@nestjs/mongoose';
+// import { JwtModule } from '@nestjs/jwt';
+//
+//
+// import {NotificationAuditLog, NotificationAuditLogSchema} from "../../Database/Notification-Log";
+// import {User, UserSchema} from "../../Database/User";
+// import {AuthModule} from "../../Authentication/Module/Authentication-Module";
+// import {NotificationService} from "./Notification-Service";
+// import {NotificationGateway} from "../Gateways/Notification-Gateway";
+// import {NotificationController} from "./Notification-Controller";
+// import {NotificationAuditController} from "../Notification-Log/Notification-Log.Controller";
+// import {NotificationAuditService} from "../Notification-Log/Notification-Log.Service";
+// import {NotificationSchema, Notification} from "../../Database/Notification";
+//
+//
+// @Module({
+//     imports: [
+//         MongooseModule.forFeature([
+//             { name: 'Notification', schema: NotificationSchema },
+//             { name: NotificationAuditLog.name, schema: NotificationAuditLogSchema },
+//             //{ name: Course.name, schema: CourseSchema },
+//             { name: User.name, schema: UserSchema },
+//         ]),
+//         AuthModule,
+//         JwtModule.register({}), // ensure same secret as HTTP auth via AuthModule or env
+//     ],
+//     providers: [NotificationService, NotificationGateway,NotificationAuditService],
+//     controllers: [NotificationController,NotificationAuditController],
+//     exports: [NotificationService],
+// })
+// export class NotificationModule {}
 
 
 

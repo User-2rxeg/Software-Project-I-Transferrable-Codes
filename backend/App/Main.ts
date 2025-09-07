@@ -1,36 +1,37 @@
 
 
-//import { NestFactory } from '@nestjs/core';
-//import { AppModule } from './app.module';
-//import 'reflect-metadata';
-
-//async function bootstrap() {
+// import { NestFactory } from '@nestjs/core';
+//
+// import 'reflect-metadata';
+//
+// async function bootstrap() {
 //  const app = await NestFactory.create(AppModule);
-//const port = process.env.PORT || 3111;
-
-//try {
+// const port = process.env.PORT || 3555;
+//
+// try {
 //  await app.listen(port);
-//console.log(`Application running on port ${port}`);
-//} catch (error: any) {
+// console.log(`Application running on port ${port}`);
+// } catch (error: any) {
 //  if (error.code === 'EADDRINUSE') {
 //    console.error(`Port ${port} is already in use. Please set a different PORT in your .env file.`);
-//} else {
+// } else {
 //  console.error('Error starting server:', error);
 // }
-//process.exit(1);
-//}
-//}
-
-//bootstrap();
+// process.exit(1);
+// }
+// }
+//
+// bootstrap();
 
 // src/main.ts
-import 'reflect-metadata';
-import { NestFactory } from '@nestjs/core';
+//import 'reflect-metadata';
+//import { NestFactory } from '@nestjs/core';
+//
+// import { ValidationPipe } from '@nestjs/common';
+// import * as express from 'express';
+// import { join } from 'path';
+// import {AppModule} from "./App.Module";
 
-import { ValidationPipe } from '@nestjs/common';
-import * as express from 'express';
-import { join } from 'path';
-import {AppModule} from "./app.module";
 
 //async function bootstrap() {
 //const app = await NestFactory.create(AppModule);
@@ -77,35 +78,67 @@ import {AppModule} from "./app.module";
 
 
 
-import * as dotenv from 'dotenv';
+// import * as dotenv from 'dotenv';
+// import {AppModule} from "./App.Module";
+//
+// dotenv.config();
+//
+// async function bootstrap() {
+//     try {
+//         const app = await NestFactory.create(AppModule, {
+//             logger: ['error', 'warn', 'log', 'debug', 'verbose']
+//         });
+//
+//         // Setup CORS
+//         app.enableCors({
+//             origin: process.env.CORS_ORIGIN || true,
+//             credentials: true
+//         });
+//
+//         // Add root handler
+//         app.getHttpAdapter().get('/', (req, res) => {
+//             res.json({ status: 'ok', message: 'Server is running' });
+//         });
+//
+//         const port = process.env.PORT || 3555;
+//
+//         // Explicitly bind to IPv4 only
+//         await app.listen(port, '127.0.0.1');
+//         console.log(`Server running at http://127.0.0.1:${port}`);
+//     } catch (error) {
+//         console.error('Server failed to start:', error);
+//     }
+// }
+//
+// bootstrap();
 
-dotenv.config();
+
+// App/Main.ts
+import 'reflect-metadata';
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import * as express from 'express';
+import { join } from 'path';
+import { AppModule } from './App.Module';
 
 async function bootstrap() {
-    try {
-        const app = await NestFactory.create(AppModule, {
-            logger: ['error', 'warn', 'log', 'debug', 'verbose']
-        });
+    const app = await NestFactory.create(AppModule);
 
-        // Setup CORS
-        app.enableCors({
-            origin: process.env.CORS_ORIGIN || true,
-            credentials: true
-        });
+    // CORS (adjust as needed)
+    app.enableCors({
+        origin: process.env.CORS_ORIGIN?.split(',') ?? true,
+        credentials: true,
+    });
 
-        // Add root handler
-        app.getHttpAdapter().get('/', (req, res) => {
-            res.json({ status: 'ok', message: 'Server is running' });
-        });
+    // Global validation
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-        const port = process.env.PORT || 3555;
+    // Static uploads (optional)
+    const uploadDir = process.env.UPLOAD_DIR || join(process.cwd(), 'uploads');
+    app.use('/uploads', express.static(uploadDir));
 
-        // Explicitly bind to IPv4 only
-        await app.listen(port, '127.0.0.1');
-        console.log(`Server running at http://127.0.0.1:${port}`);
-    } catch (error) {
-        console.error('Server failed to start:', error);
-    }
+    const port = Number(process.env.PORT) || 3786;
+    await app.listen(port);
+    console.log(`Application running on http://localhost:${port}`);
 }
-
-bootstrap();
+bootstrap()

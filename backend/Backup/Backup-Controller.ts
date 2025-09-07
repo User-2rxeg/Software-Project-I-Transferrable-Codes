@@ -77,4 +77,9 @@ export class BackupController {
     async remove(@Param('id') id: string) {
         return this.backup.delete(id);
     }
+
+    @Post(':id/restore')
+    async restore(@Param('id') id: string) {
+        return this.backup.restore(id);
+    }
 }

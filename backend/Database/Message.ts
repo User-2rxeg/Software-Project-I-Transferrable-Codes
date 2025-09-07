@@ -3,7 +3,7 @@ import { HydratedDocument, Types } from 'mongoose';
 
 export type MessageDocument = HydratedDocument<Message>;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, collection: 'messages' })
 export class Message {
     @Prop({ type: Types.ObjectId, ref: 'Conversation', required: true, index: true })
     conversation!: Types.ObjectId;
@@ -21,13 +21,47 @@ export class Message {
     @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
     readBy?: Types.ObjectId[];
 
-    @Prop({type:Date, default: null})
-    createdAt: Date=new Date();
+    @Prop({ type: Date })
+    createdAt?: Date;
 
+    @Prop({ type: Date })
+    updatedAt?: Date;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);
-MessageSchema.index({ conversation: 1, _id: -1 }); // enables cursor pagination by _id
+
+// Indexes for common queries
+MessageSchema.index({ conversation: 1, _id: -1 });         // cursor by _id
+MessageSchema.index({ conversation: 1, createdAt: -1 });   // time sort
+MessageSchema.index({ conversation: 1, sender: 1, _id: -1 });
+
+// export type MessageDocument = HydratedDocument<Message>;
+//
+// @Schema({ timestamps: true })
+// export class Message {
+//     @Prop({ type: Types.ObjectId, ref: 'Conversation', required: true, index: true })
+//     conversation!: Types.ObjectId;
+//
+//     @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
+//     sender!: Types.ObjectId;
+//
+//     @Prop({ type: String })
+//     content?: string;
+//
+//     @Prop({ type: String })
+//     attachmentUrl?: string;
+//
+//     // Optional: readers list (OK for small groups); for scale rely on Conversation.lastReadBy
+//     @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
+//     readBy?: Types.ObjectId[];
+//
+//     @Prop({type:Date, default: null})
+//     createdAt: Date=new Date();
+//
+// }
+//
+// export const MessageSchema = SchemaFactory.createForClass(Message);
+// MessageSchema.index({ conversation: 1, _id: -1 }); // enables cursor pagination by _id
 
 
 //export type MessageDocument = HydratedDocument<Message>;
@@ -94,3 +128,26 @@ MessageSchema.index({ conversation: 1, _id: -1 }); // enables cursor pagination 
 // ChatSchema.index({ updatedAt: -1 }); // for list
 
 
+// export type MessageDocument = HydratedDocument<Message>;
+//
+// @Schema({ timestamps: true })
+// export class Message {
+//     @Prop({ type: Types.ObjectId, ref: 'Conversation', required: true, index: true })
+//     conversation!: Types.ObjectId;
+//
+//     @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
+//     sender!: Types.ObjectId;
+//
+//     @Prop({ type: String })
+//     content?: string;
+//
+//     @Prop({ type: String })
+//     attachmentUrl?: string;
+//
+//     // Optional: readers list (OK for small groups); for scale rely on Conversation.lastReadBy
+//     @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
+//     readBy?: Types.ObjectId[];
+// }
+//
+// export const MessageSchema = SchemaFactory.createForClass(Message);
+// MessageSchema.index({ conversation: 1, _id: -1 }); // enables cursor pagination by _id

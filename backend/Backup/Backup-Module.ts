@@ -9,20 +9,34 @@ import {User, UserSchema} from "../Database/User";
 import {AuthModule} from "../Authentication/Module/Authentication-Module";
 import {BackupService} from "./Backup-Service";
 import {BackupController} from "./Backup-Controller";
-
-
+import {ScheduleModule} from "@nestjs/schedule";
 
 @Module({
     imports: [
+        ScheduleModule.forRoot(), // <--- important
         MongooseModule.forFeature([
             { name: Backup.name, schema: BackupSchema },
             { name: User.name, schema: UserSchema },
-            //{ name: Course.name, schema: CourseSchema },
-            //{ name: Performance.name, schema: PerformanceSchema },
         ]),
         AuthModule,
     ],
     providers: [BackupService, BackupCron],
     controllers: [BackupController],
+    exports: [BackupService],
 })
 export class BackupModule {}
+
+// @Module({
+//     imports: [
+//         MongooseModule.forFeature([
+//             { name: Backup.name, schema: BackupSchema },
+//             { name: User.name, schema: UserSchema },
+//             //{ name: Course.name, schema: CourseSchema },
+//             //{ name: Performance.name, schema: PerformanceSchema },
+//         ]),
+//         AuthModule,
+//     ],
+//     providers: [BackupService, BackupCron],
+//     controllers: [BackupController],
+// })
+// export class BackupModule {}

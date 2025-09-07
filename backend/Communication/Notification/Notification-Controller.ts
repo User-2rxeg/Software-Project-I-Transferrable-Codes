@@ -1,42 +1,118 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-
-import { CurrentUser } from '../../Authentication/Decorators/Current-User';
-import { JwtPayload } from '../../Authentication/Interfaces/JWT-Payload.Interface';
-import {JwtAuthGuard} from "../../Authentication/Guards/AuthGuard";
 import {RolesGuard} from "../../Authentication/Guards/Roles-Guard";
+import {JwtAuthGuard} from "../../Authentication/Guards/AuthGuard";
 import {NotificationService} from "./Notification-Service";
 import {CreateNotificationDto} from "../../Validators/Notification-Validator";
+import {CurrentUser} from "../../Authentication/Decorators/Current-User";
+
+
 
 @Controller('notifications')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class NotificationController {
-    constructor(private readonly notificationService: NotificationService) {}
+    constructor(private readonly notifications: NotificationService) {}
 
     @Post()
-    create(@Body() dto: CreateNotificationDto, @CurrentUser() user: JwtPayload) {
-        return this.notificationService.createNotification(dto, user.sub);
+    create(@Body() dto: CreateNotificationDto, @CurrentUser() user: any) {
+        return this.notifications.createNotification(dto, user.sub);
     }
 
     @Get()
-    getMine(@CurrentUser() user: JwtPayload) {
-        return this.notificationService.getUserNotifications(user.sub);
+    getMine(@CurrentUser() user: any) {
+        return this.notifications.getUserNotifications(user.sub);
     }
 
     @Patch(':id/read')
-    markAsRead(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
-        return this.notificationService.markAsRead(id, user.sub);
+    markAsRead(@Param('id') id: string, @CurrentUser() user: any) {
+        return this.notifications.markAsRead(id, user.sub);
     }
 
     @Patch('mark-all-read')
-    markAll(@CurrentUser() user: JwtPayload) {
-        return this.notificationService.markAllAsRead(user.sub);
+    markAll(@CurrentUser() user: any) {
+        return this.notifications.markAllAsRead(user.sub);
     }
 
     @Delete(':id')
-    remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
-        return this.notificationService.deleteNotification(id, user.sub);
+    remove(@Param('id') id: string, @CurrentUser() user: any) {
+        return this.notifications.deleteNotification(id, user.sub);
     }
+
+    @Get('unread-count')
+    unread(@CurrentUser() user: any) {
+        return this.notifications.countUnread(user.sub);
+    }
+
+    // @Get('list')
+    // list(
+    //     @CurrentUser() user: any,
+    //     @Query('limit') limit = '20',
+    //     @Query('cursor') cursor?: string,
+    //     @Query('unreadOnly') unreadOnly?: string,
+    // ) {
+    //     return this.notifications.list(user.sub, Number(limit), cursor, unreadOnly === 'true');
+    // }
+    //
+    // @Patch('read-many')
+    // readMany(@CurrentUser() user: any, @Body() body: { ids: string[] }) {
+    //     return this.notifications.markManyAsRead(user.sub, body.ids ?? []);
+    // }
+    //
+    // @Delete('delete-many')
+    // deleteMany(@CurrentUser() user: any, @Body() body: { ids: string[] }) {
+    //     return this.notifications.deleteMany(user.sub, body.ids ?? []);
+    // }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+// import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+//
+// import { CurrentUser } from '../../Authentication/Decorators/Current-User';
+// import { JwtPayload } from '../../Authentication/Interfaces/JWT-Payload.Interface';
+// import {JwtAuthGuard} from "../../Authentication/Guards/AuthGuard";
+// import {RolesGuard} from "../../Authentication/Guards/Roles-Guard";
+// import {NotificationService} from "./Notification-Service";
+// import {CreateNotificationDto} from "../../Validators/Notification-Validator";
+//
+// @Controller('notifications')
+// @UseGuards(JwtAuthGuard, RolesGuard)
+// export class NotificationController {
+//     constructor(private readonly notificationService: NotificationService) {}
+//
+//     // @Post()
+//     // create(@Body() dto: CreateNotificationDto, @CurrentUser() user: JwtPayload) {
+//     //     return this.notificationService.createNotification(dto, user.sub);
+//     // }
+//
+//     @Get()
+//     getMine(@CurrentUser() user: JwtPayload) {
+//         return this.notificationService.getUserNotifications(user.sub);
+//     }
+//
+//     @Patch(':id/read')
+//     markAsRead(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+//         return this.notificationService.markAsRead(id, user.sub);
+//     }
+//
+//     @Patch('mark-all-read')
+//     markAll(@CurrentUser() user: JwtPayload) {
+//         return this.notificationService.markAllAsRead(user.sub);
+//     }
+//
+//     @Delete(':id')
+//     remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+//         return this.notificationService.deleteNotification(id, user.sub);
+//     }
+// }
 
 
 // import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';

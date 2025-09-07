@@ -76,3 +76,6 @@ export class AuditLogController {
         return this.audit.findAll(parseInt(page), parseInt(limit), { event: 'UNAUTHORIZED_ACCESS', from, to });
     }
 }
+
+
+// CONSIDER ADDING MORE EVENTS OR MORE METHODS

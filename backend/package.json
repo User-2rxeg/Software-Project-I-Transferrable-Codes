@@ -2,13 +2,14 @@
   "name": "Software-Project-I-Transferrable-Codes",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/main.js",
+  "main": "dist/App/Main.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/main.js",
-    "start:dev": "ts-node src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/App/Main.js",
+    "start:dev": "ts-node --project tsconfig.json ./App/Main.ts",
     "watch": "tsc -w",
-    "dev": "nodemon --exec ts-node src/main.ts"
+    "dev": "nodemon --exec ts-node src/main.ts",
+    "seed": "ts-node --project tsconfig.json App/Initialization.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.5",
@@ -48,8 +49,9 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/speakeasy": "^2.0.10",
     "nodemon": "^3.0.1",
-    "ts-node": "^10.9.1",
+    "ts-node": "^10.9.2",
     "typescript": "~5.3.3"
   },
   "private": true
+
 }
