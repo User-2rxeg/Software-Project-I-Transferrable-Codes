@@ -116,13 +116,8 @@ export class ChatController {
 // }
 
 
-// import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
-// import { ChatService } from './chat.service';
-// import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-// import { CreateConversationDto } from '../dto/chat/create-conversation.dto';
-// import { SendMessageDto } from '../dto/chat/send-message.dto';
-// import { CurrentUser } from '../auth/decorators/current-user.decorator';
-//
+
+
 // @Controller('chat')
 // @UseGuards(JwtAuthGuard)
 // export class ChatController {
@@ -152,16 +147,9 @@ export class ChatController {
 //     async markRead(@CurrentUser() user: any, @Body() body: { conversationId: string; upToMessageId?: string }) {
 //         return this.chat.markRead(body.conversationId, user.userId, body.upToMessageId);
 //     }
-// }
 
-//
-// import { Controller, Get, Post, Body, Query, Param, UseGuards } from '@nestjs/common';
-// import { ChatService } from './chat.service';
-// import { JwtAuthGuard } from '../../Authentication/Guards/AuthGuard';
-// import { CurrentUser } from '../../Authentication/Decorators/Current-User';
-// import { JwtPayload } from '../../Authentication/Interfaces/JWT-Payload.Interface';
-// import { CreateConversationDto, ListMessagesQueryDto, MarkReadDto, SendMessageDto } from '../../dto/chat/chat.dto';
-//
+
+
 // @Controller('chat')
 // @UseGuards(JwtAuthGuard)
 // export class ChatController {

@@ -16,33 +16,18 @@ import { AuthModule } from '../../../Authentication/Module/Authentication-Module
             { name: Message.name, schema: MessageSchema },
             { name: User.name, schema: UserSchema },
         ]),
-        forwardRef(() => AuthModule),     // <<< if there’s a loop, use forwardRef
-        JwtModule.register({}),           // shares secret via AuthModule’s config
+        forwardRef(() => AuthModule),
+        JwtModule.register({}),
     ],
     controllers: [ChatController],
     providers: [
         ChatService,
         ChatGateway,
     ],
-    exports: [ChatService],             // export if other modules need it
+    exports: [ChatService],
 })
 export class ChatModule {}
 
-// @Module({
-//     imports: [
-//         MongooseModule.forFeature([
-//             { name: Conversation.name, schema: ConversationSchema },
-//             { name: Message.name, schema: MessageSchema },
-//             { name: User.name, schema: UserSchema },
-//         ]),
-//         AuthModule,
-//         JwtModule.register({}), // ensure same secret as HTTP auth
-//     ],
-//     controllers: [ChatController],
-//     providers: [ChatService, ChatGateway],
-//     exports: [ChatService],
-// })
-// export class ChatModule {}
 
 
 
@@ -63,17 +48,7 @@ export class ChatModule {}
 //export class ChatModule {}
 
 
-//import { Module } from '@nestjs/common';
-// import { MongooseModule } from '@nestjs/mongoose';
-// import { JwtModule } from '@nestjs/jwt';
-//
-// import { Conversation, ConversationSchema } from '../../Model/chat/conversation.schema';
-// import { Message, MessageSchema } from '../../Model/chat/message.schema';
-// import { ChatService } from './chat.service';
-// import { ChatController } from './chat.controller';
-// import { ChatGateway } from './chat.gateway';
-// import { AuthModule } from '../../Authentication/AuthModule';
-//
+
 // @Module({
 //     imports: [
 //         MongooseModule.forFeature([

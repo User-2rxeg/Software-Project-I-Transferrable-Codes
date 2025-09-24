@@ -23,7 +23,7 @@ export class FeedbackController {
         });
     }
 
-    // admin list
+
     @Get('admin')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
