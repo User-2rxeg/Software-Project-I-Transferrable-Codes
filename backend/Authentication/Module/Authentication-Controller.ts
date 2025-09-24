@@ -12,11 +12,12 @@ import {Public} from "../Decorators/Public-Decorator";
 import { AuthService } from './Authentication-Service';
 import {RegisterDto} from "../Validators/Register-Validator";
 import { LoginDto } from '../Validators/Login-Validator';
-import {JwtAuthGuard} from "../Guards/AuthGuard";
+import {JwtAuthGuard} from "../Guards/Auth-Guard";
 import {CurrentUser} from "../Decorators/Current-User";
 import {JwtPayload} from "../Interfaces/JWT-Payload.Interface";
 import {MfaActivateDto, VerifyLoginDto} from "../Validators/MFA-Validator";
-import {TempJwtGuard} from "../Guards/MFA-JWT.Guard";
+import {TempJwtGuard} from "../Guards/MFA-Guard";
+import {ForgotPasswordDto} from "../Validators/OTP-Validator";
 
 @Controller('auth')
 export class AuthController {
@@ -31,6 +32,13 @@ export class AuthController {
             throw new InternalServerErrorException('Something went wrong during registration.');
         }
     }
+
+    @Public() @Post('verify-otp')
+    async verifyOTP(@Body('email') email: string, @Body('otp') otpCode: string) {
+        const res = await this.auth.verifyOTP(email, otpCode);
+        return { message: 'Email verified successfully', ...res };
+    }
+
 
     @Public()
     @HttpCode(HttpStatus.OK)
@@ -56,37 +64,31 @@ export class AuthController {
         return this.auth.logout(token);
     }
 
-    @UseGuards(JwtAuthGuard)
-    @Get('me')
-    async me(@CurrentUser() user: JwtPayload) {
-        return this.auth.getUserProfile(user.sub);
-    }
-
     // OTP flows
     @Public() @Post('send-otp')
     async sendOTP(@Body('email') email: string) {
         await this.auth.sendOTP(email);
         return { message: 'OTP sent to email' };
     }
+
     @Public() @Post('resend-otp')
     async resendOTP(@Body('email') email: string) {
         await this.auth.resendOTP(email);
         return { message: 'OTP resent successfully' };
     }
-    @Public() @Post('verify-otp')
-    async verifyOTP(@Body('email') email: string, @Body('otp') otpCode: string) {
-        const res = await this.auth.verifyOTP(email, otpCode);
-        return { message: 'Email verified successfully', ...res };
-    }
+
     @Public() @Get('otp-status/:email')
     async otpStatus(@Param('email') email: string) {
         return this.auth.checkOTPStatus(email);
     }
+
+
     @Public() @Post('forgot-password')
-    async forgotPassword(@Body('email') email: string) {
-        await this.auth.forgotPassword(email);
+    async forgotPassword(@Body() dto: ForgotPasswordDto) {
+        await this.auth.forgotPassword(dto.email);
         return { message: 'OTP sent to email' };
     }
+
     @Public() @Post('reset-password')
     async resetPassword(
         @Body('email') email: string,
@@ -98,11 +100,13 @@ export class AuthController {
     }
 
     // MFA
+
     @UseGuards(JwtAuthGuard)
     @Post('mfa/setup')
     async mfaSetup(@CurrentUser() user: JwtPayload) {
         return this.auth.enableMfa(user.sub);
     }
+
 
     @UseGuards(JwtAuthGuard)
     @Post('mfa/activate')
@@ -110,11 +114,13 @@ export class AuthController {
         return this.auth.verifyMfaSetup(user.sub, body.token);
     }
 
+
     @UseGuards(TempJwtGuard)
     @Post('mfa/verify-login')
     async mfaVerifyLogin(@CurrentUser() user: JwtPayload, @Body() body: VerifyLoginDto) {
         return this.auth.verifyLoginWithMfa(user.sub, body);
     }
+
 
     @UseGuards(JwtAuthGuard)
     @Post('mfa/disable')

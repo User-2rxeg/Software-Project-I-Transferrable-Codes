@@ -4,21 +4,21 @@ import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import {BlacklistedToken, BlacklistedTokenSchema} from "../../Database/Token";
-import {UserModule} from "../../User/User-Module";
+import {BlacklistedToken, BlacklistedTokenSchema} from "../Token/Token";
+import {UserModule} from "../../User/Module/User-Module";
 import {AuthController} from "./Authentication-Controller";
 import {AuthService} from "./Authentication-Service";
 import {TempJwtStrategy} from "../Strategies/MFA-JWT.Strategies";
 import {JwtStrategy} from "../Strategies/JWT-Strategies";
-import {TempJwtGuard} from "../Guards/MFA-JWT.Guard";
-import {JwtAuthGuard} from "../Guards/AuthGuard";
+import {TempJwtGuard} from "../Guards/MFA-Guard";
+import {JwtAuthGuard} from "../Guards/Auth-Guard";
 import {MailModule} from "../Email/Email-Module";
-import {TokenBlacklistService} from "./Token/BlackList-Token.Service";
+import {TokenBlacklistService} from "../Token/BlackList-Token.Service";
 
 @Module({
     imports: [
         ConfigModule,
-        MailModule, // 👈 add this
+        MailModule,
         JwtModule.registerAsync({
             imports: [ConfigModule],
             inject: [ConfigService],

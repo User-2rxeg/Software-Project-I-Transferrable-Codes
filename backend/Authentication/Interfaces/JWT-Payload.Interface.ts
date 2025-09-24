@@ -1,4 +1,4 @@
-import { UserRole } from '../../Database/User';
+import { UserRole } from '../../User/Model/User';
 
 export interface JwtPayload {
     sub: string;   // user._id
@@ -13,7 +13,7 @@ export interface JwtPayload {
 
 
 
-// import { UserRole } from '../../Database/User';
+// import { UserRole } from '../../Model/User';
 //
 // export interface JwtPayload {
 //     sub: string; // user._id

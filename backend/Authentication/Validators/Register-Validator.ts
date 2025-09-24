@@ -1,5 +1,5 @@
 import { IsString, IsEmail, IsOptional, IsEnum, IsArray, MinLength } from 'class-validator';
-import { UserRole } from '../../Database/User';
+import { UserRole } from '../../User/Model/User';
 
 export class RegisterDto {
     @IsString()
@@ -49,7 +49,7 @@ export class RegisterDto {
 //
 //
 // import {IsString, IsEmail, IsOptional, IsEnum, IsArray, MinLength} from 'class-validator';
-// import { UserRole } from '../../Database/User';
+// import { UserRole } from '../../Model/User';
 //
 // export class RegisterDto {
 //     @IsString()

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-import { UserRole } from '../../Database/User';
+import { UserRole } from '../../User/Model/User';
 import {ROLES_KEY} from "../Decorators/Role-Decorator";
 
 
