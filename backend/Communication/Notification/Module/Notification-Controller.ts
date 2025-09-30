@@ -2,66 +2,131 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@n
 import {RolesGuard} from "../../../Authentication/Guards/Roles-Guard";
 import {JwtAuthGuard} from "../../../Authentication/Guards/Auth-Guard";
 import {NotificationService} from "./Notification-Service";
-import {CreateNotificationDto} from "../Validators/Notification-Validator";
+
 import {CurrentUser} from "../../../Authentication/Decorators/Current-User";
+import {CreateNotificationDto, NotificationDto} from "../Validators/Create-Notification";
+import {
+    ApiTags,
+    ApiBearerAuth,
+    ApiOperation,
+    ApiCreatedResponse,
+    ApiOkResponse,
+    ApiBody,
+    ApiParam,
+} from '@nestjs/swagger';
 
 
-
+@ApiTags('notifications')
+@ApiBearerAuth('access-token')
 @Controller('notifications')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class NotificationController {
     constructor(private readonly notifications: NotificationService) {}
 
     @Post()
+    @ApiOperation({ summary: 'Create a notification (admin/instructor/system)' })
+    @ApiBody({ type: CreateNotificationDto })
+    @ApiCreatedResponse({ type: NotificationDto })
     create(@Body() dto: CreateNotificationDto, @CurrentUser() user: any) {
         return this.notifications.createNotification(dto, user.sub);
     }
 
     @Get()
+    @ApiOperation({ summary: 'Get my notifications (latest first)' })
+    @ApiOkResponse({ type: [NotificationDto] })
     getMine(@CurrentUser() user: any) {
         return this.notifications.getUserNotifications(user.sub);
     }
 
     @Patch(':id/read')
+    @ApiOperation({ summary: 'Mark a single notification as read' })
+    @ApiParam({ name: 'id', description: 'Notification id' })
+    @ApiOkResponse({ type: NotificationDto })
     markAsRead(@Param('id') id: string, @CurrentUser() user: any) {
         return this.notifications.markAsRead(id, user.sub);
     }
 
     @Patch('mark-all-read')
+    @ApiOperation({ summary: 'Mark all notifications as read for current user' })
+    @ApiOkResponse({ description: 'Operation result' })
     markAll(@CurrentUser() user: any) {
         return this.notifications.markAllAsRead(user.sub);
     }
 
-    // @Delete(':id')
-    // remove(@Param('id') id: string, @CurrentUser() user: any) {
-    //     return this.notifications.deleteNotification(id, user.sub);
-    // }
-
     @Get('unread-count')
+    @ApiOperation({ summary: 'Get unread notifications count' })
+    @ApiOkResponse({ description: 'Unread count (number)' })
     unread(@CurrentUser() user: any) {
         return this.notifications.countUnread(user.sub);
     }
 
-    // @Get('list')
-    // list(
-    //     @CurrentUser() user: any,
-    //     @Query('limit') limit = '20',
-    //     @Query('cursor') cursor?: string,
-    //     @Query('unreadOnly') unreadOnly?: string,
-    // ) {
-    //     return this.notifications.list(user.sub, Number(limit), cursor, unreadOnly === 'true');
-    // }
-    //
-    // @Patch('read-many')
-    // readMany(@CurrentUser() user: any, @Body() body: { ids: string[] }) {
-    //     return this.notifications.markManyAsRead(user.sub, body.ids ?? []);
-    // }
-    //
-    // @Delete('delete-many')
-    // deleteMany(@CurrentUser() user: any, @Body() body: { ids: string[] }) {
-    //     return this.notifications.deleteMany(user.sub, body.ids ?? []);
+    // Uncomment and protect if you want delete capability
+    // @Delete(':id')
+    // @ApiOperation({ summary: 'Delete a notification' })
+    // @ApiParam({ name: 'id', description: 'Notification id' })
+    // @ApiOkResponse({ description: 'Deleted' })
+    // remove(@Param('id') id: string, @CurrentUser() user: any) {
+    //   return this.notifications.deleteNotification(id, user.sub);
     // }
 }
+
+
+
+// @Controller('notifications')
+// @UseGuards(JwtAuthGuard, RolesGuard)
+// export class NotificationController {
+//     constructor(private readonly notifications: NotificationService) {}
+//
+//     @Post()
+//     create(@Body() dto: CreateNotificationDto, @CurrentUser() user: any) {
+//         return this.notifications.createNotification(dto, user.sub);
+//     }
+//
+//     @Get()
+//     getMine(@CurrentUser() user: any) {
+//         return this.notifications.getUserNotifications(user.sub);
+//     }
+//
+//     @Patch(':id/read')
+//     markAsRead(@Param('id') id: string, @CurrentUser() user: any) {
+//         return this.notifications.markAsRead(id, user.sub);
+//     }
+//
+//     @Patch('mark-all-read')
+//     markAll(@CurrentUser() user: any) {
+//         return this.notifications.markAllAsRead(user.sub);
+//     }
+//
+//     // @Delete(':id')
+//     // remove(@Param('id') id: string, @CurrentUser() user: any) {
+//     //     return this.notifications.deleteNotification(id, user.sub);
+//     // }
+//
+//     @Get('unread-count')
+//     unread(@CurrentUser() user: any) {
+//         return this.notifications.countUnread(user.sub);
+//     }
+//
+//     // @Get('list')
+//     // list(
+//     //     @CurrentUser() user: any,
+//     //     @Query('limit') limit = '20',
+//     //     @Query('cursor') cursor?: string,
+//     //     @Query('unreadOnly') unreadOnly?: string,
+//     // ) {
+//     //     return this.notifications.list(user.sub, Number(limit), cursor, unreadOnly === 'true');
+//     // }
+//     //
+//     // @Patch('read-many')
+//     // readMany(@CurrentUser() user: any, @Body() body: { ids: string[] }) {
+//     //     return this.notifications.markManyAsRead(user.sub, body.ids ?? []);
+//     // }
+//     //
+//     // @Delete('delete-many')
+//     // deleteMany(@CurrentUser() user: any, @Body() body: { ids: string[] }) {
+//     //     return this.notifications.deleteMany(user.sub, body.ids ?? []);
+//     // }
+// }
 
 
 

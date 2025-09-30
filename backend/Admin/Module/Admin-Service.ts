@@ -49,8 +49,11 @@ export class AdminService {
 
     async updateUserRole(userId: string, adminId: string, newRole: UserRole) {
         const doc = await this.users.findByIdAndUpdate(userId, { role: newRole }, { new: true }).exec();
+
         if (!doc) throw new NotFoundException('User not found');
+
         await this.audit.record(AuditEvent.ROLE_CHANGED, adminId, { userId, newRole });
+
         return this.users.findById(userId).lean().exec();
     }
 

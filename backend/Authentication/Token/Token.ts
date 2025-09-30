@@ -1,4 +1,3 @@
-// src/Model/BlacklistedToken.ts
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import {HydratedDocument, Types} from 'mongoose';
@@ -8,17 +7,43 @@ export type BlacklistedTokenDocument = HydratedDocument<BlacklistedToken>;
 
 @Schema({ timestamps: true, collection: 'blacklisted_tokens' })
 export class BlacklistedToken {
-    @Prop({ type: String }) token?: string;     // for token-based invalidation
-    @Prop({ type: String }) userId?: string;    // for user-wide invalidation
-    @Prop({ type: Date, required: true }) expiresAt!: Date;
+
+    @Prop({ type: String })
+    token?: string;     // for token-based invalidation
+
+    @Prop({ type: String })
+    userId?: string;    // for user-wide invalidation
+
+    @Prop({ type: Date, required: true })
+    expiresAt!: Date;
 
     @Prop({ type: String, index: true })
     jti?: string; // optional if you rotate refresh tokens
 
-
 }
 
 export const BlacklistedTokenSchema = SchemaFactory.createForClass(BlacklistedToken);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // BlacklistedTokenSchema.index({ userId: 1, expiresAt: 1 });
 // BlacklistedTokenSchema.index({ token: 1 });
 // BlacklistedTokenSchema.index({ jti: 1 });

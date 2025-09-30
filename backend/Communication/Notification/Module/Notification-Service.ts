@@ -6,8 +6,9 @@ import {Notification, NotificationDocument, NotificationSchema, NotificationType
 import { NotificationAuditLog, NotificationAuditLogDocument } from '../Models/Notification-Log';
 import { User, UserDocument, UserRole } from '../../../User/Model/User';
 import { NotificationGateway } from '../Gateway/Notification-Gateway';
-import { CreateNotificationDto } from '../Validators/Notification-Validator';
+
 import { MailService } from '../../../Authentication/Email/Email-Service';
+import {CreateNotificationDto} from "../Validators/Create-Notification";
 
 @Injectable()
 export class NotificationService {

@@ -5,12 +5,10 @@ import {HydratedDocument, Types} from "mongoose";
 
 
 export enum NotificationType {
-    Announcement = 'announcement',
-    CourseUpdate = 'courseUpdate',
-    AssignmentDue = 'assignmentDue',
-    NewMessage = 'newMessage',
-    SystemAlert = 'systemAlert',
-    Other = 'other',
+    Announcement = 'Announcement',
+    NewMessage = 'New Message',
+    SystemAlert = 'System Alert',
+    Other = 'Other',
 }
 
 export type NotificationDocument = HydratedDocument<Notification>;

@@ -18,13 +18,29 @@ import {JwtPayload} from "../Interfaces/JWT-Payload.Interface";
 import {MfaActivateDto, VerifyLoginDto} from "../Validators/MFA-Validator";
 import {TempJwtGuard} from "../Guards/MFA-Guard";
 import {ForgotPasswordDto} from "../Validators/OTP-Validator";
+import {
+    ApiBearerAuth,
+    ApiBody,
+    ApiCreatedResponse,
+    ApiOkResponse,
+    ApiOperation, ApiTags,
+    ApiUnauthorizedResponse
+} from '@nestjs/swagger';
+import {RefreshTokenDto} from "../Validators/Refresh-Token.Validator";
+import {AuthTokensDto, MfaSetupDto, SimpleMessageDto} from '../Validators/Responses-DTO/auth-responses';
 
+
+@ApiTags('auth')
+@ApiBearerAuth('access-token') // Enables Authorize button in Swagger UI; Public endpoints remain usable without auth
 @Controller('auth')
 export class AuthController {
     constructor(private readonly auth: AuthService) {}
 
     @Public()
     @Post('register')
+    @ApiOperation({ summary: 'Register a new user' })
+    @ApiBody({ type: RegisterDto })
+    @ApiCreatedResponse({ description: 'User registered (may require email verification)' })
     async register(@Body() dto: RegisterDto) {
         try {
             return await this.auth.register(dto);
@@ -33,16 +49,23 @@ export class AuthController {
         }
     }
 
-    @Public() @Post('verify-otp')
+    @Public()
+    @Post('verify-otp')
+    @ApiOperation({ summary: 'Verify registration / email OTP' })
+    @ApiBody({ schema: { type: 'object', properties: { email: { type: 'string' }, otp: { type: 'string' } } } })
+    @ApiOkResponse({ description: 'OTP verified', type: SimpleMessageDto })
     async verifyOTP(@Body('email') email: string, @Body('otp') otpCode: string) {
         const res = await this.auth.verifyOTP(email, otpCode);
         return { message: 'Email verified successfully', ...res };
     }
 
-
     @Public()
     @HttpCode(HttpStatus.OK)
     @Post('login')
+    @ApiOperation({ summary: 'Login with email and password' })
+    @ApiBody({ type: LoginDto })
+    @ApiOkResponse({ description: 'Login successful — returns tokens or MFA challenge', type: AuthTokensDto })
+    @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
     async login(@Body() dto: LoginDto) {
         return this.auth.login(dto.email, dto.password);
     }
@@ -50,6 +73,9 @@ export class AuthController {
     @Public()
     @HttpCode(HttpStatus.OK)
     @Post('refresh')
+    @ApiOperation({ summary: 'Refresh tokens using a refresh token' })
+    @ApiBody({ type: RefreshTokenDto })
+    @ApiOkResponse({ description: 'New tokens', type: AuthTokensDto })
     async refresh(@Body('refreshToken') refreshToken: string) {
         return this.auth.refreshToken(refreshToken);
     }
@@ -57,6 +83,9 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
     @Post('logout')
+    @ApiOperation({ summary: 'Logout (invalidate current access token)' })
+    @ApiBearerAuth('access-token')
+    @ApiOkResponse({ description: 'Logout result', type: SimpleMessageDto })
     async logout(@Req() req: any) {
         const authHeader: string | undefined = req.headers?.authorization;
         const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
@@ -65,31 +94,60 @@ export class AuthController {
     }
 
     // OTP flows
-    @Public() @Post('send-otp')
+
+    @Public()
+    @Post('send-otp')
+    @ApiOperation({ summary: 'Send OTP to email (signup / forgot flows)' })
+    @ApiBody({ schema: { type: 'object', properties: { email: { type: 'string', format: 'email' } } } })
+    @ApiOkResponse({ description: 'OTP sent', type: SimpleMessageDto })
     async sendOTP(@Body('email') email: string) {
         await this.auth.sendOTP(email);
         return { message: 'OTP sent to email' };
     }
 
-    @Public() @Post('resend-otp')
+    @Public()
+    @Post('resend-otp')
+    @ApiOperation({ summary: 'Resend previously generated OTP' })
+    @ApiBody({ schema: { type: 'object', properties: { email: { type: 'string', format: 'email' } } } })
+    @ApiOkResponse({ description: 'OTP resent', type: SimpleMessageDto })
     async resendOTP(@Body('email') email: string) {
         await this.auth.resendOTP(email);
         return { message: 'OTP resent successfully' };
     }
 
-    @Public() @Get('otp-status/:email')
-    async otpStatus(@Param('email') email: string) {
+    @Public()
+    @Get('otp-status/:email')
+    @ApiOperation({ summary: 'Check OTP status (exists/expired) for an email' })
+    @ApiOkResponse({ description: 'OTP status object' })
+    async otpStatus(@Body() email: string) {
         return this.auth.checkOTPStatus(email);
     }
 
-
-    @Public() @Post('forgot-password')
+    @Public()
+    @Post('forgot-password')
+    @ApiOperation({ summary: 'Request forgot-password OTP' })
+    @ApiBody({ type: ForgotPasswordDto })
+    @ApiOkResponse({ description: 'OTP sent', type: SimpleMessageDto })
     async forgotPassword(@Body() dto: ForgotPasswordDto) {
         await this.auth.forgotPassword(dto.email);
         return { message: 'OTP sent to email' };
     }
 
-    @Public() @Post('reset-password')
+    @Public()
+    @Post('reset-password')
+    @ApiOperation({ summary: 'Reset password using OTP' })
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                email: { type: 'string', format: 'email' },
+                otpCode: { type: 'string' },
+                newPassword: { type: 'string' },
+            },
+            required: ['email', 'otpCode', 'newPassword'],
+        },
+    })
+    @ApiOkResponse({ description: 'Password reset successful', type: SimpleMessageDto })
     async resetPassword(
         @Body('email') email: string,
         @Body('otpCode') otpCode: string,
@@ -99,35 +157,156 @@ export class AuthController {
         return { message: 'Password reset successful' };
     }
 
-    // MFA
+    // MFA flows
 
     @UseGuards(JwtAuthGuard)
     @Post('mfa/setup')
+    @ApiOperation({ summary: 'Initiate MFA setup (returns otpauth URL & secret to display to user)' })
+    @ApiBearerAuth('access-token')
+    @ApiOkResponse({ description: 'MFA setup info', type: MfaSetupDto })
     async mfaSetup(@CurrentUser() user: JwtPayload) {
         return this.auth.enableMfa(user.sub);
     }
 
-
     @UseGuards(JwtAuthGuard)
     @Post('mfa/activate')
+    @ApiOperation({ summary: 'Activate MFA (verify the TOTP token provided by user)' })
+    @ApiBearerAuth('access-token')
+    @ApiBody({ type: MfaActivateDto })
+    @ApiOkResponse({ description: 'MFA activated', type: SimpleMessageDto })
     async mfaActivate(@CurrentUser() user: JwtPayload, @Body() body: MfaActivateDto) {
         return this.auth.verifyMfaSetup(user.sub, body.token);
     }
 
-
     @UseGuards(TempJwtGuard)
     @Post('mfa/verify-login')
+    @ApiOperation({ summary: 'Verify MFA during login (temp session)' })
+    @ApiBearerAuth('access-token')
+    @ApiBody({ type: VerifyLoginDto })
+    @ApiOkResponse({ description: 'Login success — tokens returned', type: AuthTokensDto })
     async mfaVerifyLogin(@CurrentUser() user: JwtPayload, @Body() body: VerifyLoginDto) {
         return this.auth.verifyLoginWithMfa(user.sub, body);
     }
 
-
     @UseGuards(JwtAuthGuard)
     @Post('mfa/disable')
+    @ApiOperation({ summary: 'Disable MFA for current user' })
+    @ApiBearerAuth('access-token')
+    @ApiOkResponse({ description: 'MFA disabled', type: SimpleMessageDto })
     async disableMfa(@CurrentUser() user: JwtPayload) {
         return this.auth.disableMfa(user.sub);
     }
 }
+
+// @Controller('auth')
+// export class AuthController {
+//     constructor(private readonly auth: AuthService) {}
+//
+//     @Public()
+//     @Post('register')
+//     async register(@Body() dto: RegisterDto) {
+//         try {
+//             return await this.auth.register(dto);
+//         } catch (e) {
+//             throw new InternalServerErrorException('Something went wrong during registration.');
+//         }
+//     }
+//
+//     @Public() @Post('verify-otp')
+//     async verifyOTP(@Body('email') email: string, @Body('otp') otpCode: string) {
+//         const res = await this.auth.verifyOTP(email, otpCode);
+//         return { message: 'Email verified successfully', ...res };
+//     }
+//
+//
+//     @Public()
+//     @HttpCode(HttpStatus.OK)
+//     @Post('login')
+//     async login(@Body() dto: LoginDto) {
+//         return this.auth.login(dto.email, dto.password);
+//     }
+//
+//     @Public()
+//     @HttpCode(HttpStatus.OK)
+//     @Post('refresh')
+//     async refresh(@Body('refreshToken') refreshToken: string) {
+//         return this.auth.refreshToken(refreshToken);
+//     }
+//
+//     @UseGuards(JwtAuthGuard)
+//     @HttpCode(HttpStatus.OK)
+//     @Post('logout')
+//     async logout(@Req() req: any) {
+//         const authHeader: string | undefined = req.headers?.authorization;
+//         const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+//         if (!token) return { message: 'no-op' };
+//         return this.auth.logout(token);
+//     }
+//
+//     // OTP flows
+//     @Public() @Post('send-otp')
+//     async sendOTP(@Body('email') email: string) {
+//         await this.auth.sendOTP(email);
+//         return { message: 'OTP sent to email' };
+//     }
+//
+//     @Public() @Post('resend-otp')
+//     async resendOTP(@Body('email') email: string) {
+//         await this.auth.resendOTP(email);
+//         return { message: 'OTP resent successfully' };
+//     }
+//
+//     @Public() @Get('otp-status/:email')
+//     async otpStatus(@Param('email') email: string) {
+//         return this.auth.checkOTPStatus(email);
+//     }
+//
+//
+//     @Public() @Post('forgot-password')
+//     async forgotPassword(@Body() dto: ForgotPasswordDto) {
+//         await this.auth.forgotPassword(dto.email);
+//         return { message: 'OTP sent to email' };
+//     }
+//
+//     @Public() @Post('reset-password')
+//     async resetPassword(
+//         @Body('email') email: string,
+//         @Body('otpCode') otpCode: string,
+//         @Body('newPassword') newPassword: string,
+//     ) {
+//         await this.auth.resetPassword(email, otpCode, newPassword);
+//         return { message: 'Password reset successful' };
+//     }
+//
+//     // MFA
+//
+//     @UseGuards(JwtAuthGuard)
+//     @Post('mfa/setup')
+//     async mfaSetup(@CurrentUser() user: JwtPayload) {
+//         return this.auth.enableMfa(user.sub);
+//     }
+//
+//
+//     @UseGuards(JwtAuthGuard)
+//     @Post('mfa/activate')
+//     async mfaActivate(@CurrentUser() user: JwtPayload, @Body() body: MfaActivateDto) {
+//         return this.auth.verifyMfaSetup(user.sub, body.token);
+//     }
+//
+//
+//     @UseGuards(TempJwtGuard)
+//     @Post('mfa/verify-login')
+//     async mfaVerifyLogin(@CurrentUser() user: JwtPayload, @Body() body: VerifyLoginDto) {
+//         return this.auth.verifyLoginWithMfa(user.sub, body);
+//     }
+//
+//
+//     @UseGuards(JwtAuthGuard)
+//     @Post('mfa/disable')
+//     async disableMfa(@CurrentUser() user: JwtPayload) {
+//         return this.auth.disableMfa(user.sub);
+//     }
+// }
 
 // @Controller('auth')
 // export class AuthController {

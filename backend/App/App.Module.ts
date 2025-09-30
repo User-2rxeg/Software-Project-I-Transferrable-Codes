@@ -16,11 +16,11 @@ import { JwtAuthGuard } from '../Authentication/Guards/Auth-Guard';
 import { RolesGuard } from '../Authentication/Guards/Roles-Guard';
 import {MailModule} from "../Authentication/Email/Email-Module";
 import {FeedbackModule} from "../Communication/Feedback/Module/Feedback-Module";
+import {BackupModule} from "../Backup/Module/Backup-Module";
 
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        ScheduleModule.forRoot(),
         MongooseModule.forRootAsync({
             imports: [ConfigModule],
             useFactory: async (config: ConfigService) => ({
@@ -36,6 +36,7 @@ import {FeedbackModule} from "../Communication/Feedback/Module/Feedback-Module";
         ChatModule,
         MailModule,
         FeedbackModule,
+        BackupModule,
     ],
     providers: [
         { provide: APP_GUARD, useClass: JwtAuthGuard },

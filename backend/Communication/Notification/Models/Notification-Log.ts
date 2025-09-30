@@ -6,6 +6,12 @@ import { HydratedDocument, Types } from 'mongoose';
 export type NotificationAuditLogDocument = HydratedDocument<NotificationAuditLog>;
 export type NotificationEventType = 'SENT' | 'READ' | 'DELETED';// USE ENUM MAYBE???
 
+export enum NotificationStatus {
+    SENT='SENT',
+    READ='DELETED',
+    DELETED='DELETED'
+}
+
 @Schema({ timestamps: true })
 export class NotificationAuditLog {
     @Prop({ type: Types.ObjectId, ref: 'Notification', required: true, index: true })

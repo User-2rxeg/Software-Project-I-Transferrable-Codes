@@ -39,7 +39,7 @@ export class MailService {
                   </div>
                   <p>This code will expire in 10 minutes.</p>
                   <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-                  <p style="font-size: 12px; color: #6b7280;">Automated email from EventTix. Please do not reply.</p>
+                  <p style="font-size: 12px; color: #6b7280;">Automated email from HR System. Please do not reply.</p>
                 </div>
             `,
         };
