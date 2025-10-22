@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+  }
+}
+
+//{
+//  "compilerOptions": {
+//    "target": "ES2021",
+//    "module": "CommonJS",
+//    "moduleResolution": "node",
+//    "rootDir": ".",                 // ← project root
+//    "outDir": "dist",
+//
+//    "experimentalDecorators": true,
+//    "emitDecoratorMetadata": true,
+//
+//    "strict": true,
+//    "esModuleInterop": true,
+//    "skipLibCheck": true,
+//    "forceConsistentCasingInFileNames": true,
+//
+//    "baseUrl": ".",
+//    "paths": { "*": ["node_modules/*"] }
+//  },
+//  "include": ["**/*.ts"],
+//  "exclude": ["node_modules", "dist"]
+//}
+
