@@ -157,11 +157,11 @@ export class AuthService {
 
         const payload = {sub: user._id, email: user.email, role: user.role};
         const access_token = await this.jwtService.signAsync(payload, {expiresIn: '1h'});
-        const refresh_token = await this.jwtService.signAsync(payload, {expiresIn: '7d'});
+        //const refresh_token = await this.jwtService.signAsync(payload, {expiresIn: '7d'});
 
         await this.audit.log(AuditEvent.LOGIN_SUCCESS, user._id, {email: user.email, role: user.role});
 
-        return {access_token, refresh_token, user};
+        return {access_token,user};
     }
 
 

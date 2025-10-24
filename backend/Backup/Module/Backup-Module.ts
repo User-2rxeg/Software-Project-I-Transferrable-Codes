@@ -1,15 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
-import {BackupService} from "./Backup-Service";
-import {CronBackupService} from "../Scheduler/Backup-Cron";
-import {BackupController} from "./Backup-Controller";
-import {AuthModule} from "../../Authentication/Module/Authentication-Module";
-
+import { BackupService } from './Backup-Service';
+import { CronBackupService } from '../Scheduler/Backup-Cron';
 
 @Module({
-    imports: [ScheduleModule.forRoot(),AuthModule],
+    imports: [ScheduleModule.forRoot()],
     providers: [BackupService, CronBackupService],
-    controllers: [BackupController],
     exports: [BackupService],
 })
 export class BackupModule {}
+
