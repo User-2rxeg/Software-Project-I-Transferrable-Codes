@@ -23,15 +23,11 @@ export class NotificationService {
         private readonly mail: MailService,
     ) {}
 
-    // Optional: inject Course model later if you need course existence checks.
-
-    // Single notification create (recipientId must be a valid user id string)
     async createNotification(dto: CreateNotificationDto, senderId: string) {
-        // validate sender
+
         const sender = await this.userModel.findById(senderId).lean();
         if (!sender) throw new NotFoundException('Sender not found');
 
-        // policy checks
         if (dto.type === NotificationType.Announcement) {
             if (!(sender.role === UserRole.ADMIN || sender.role === UserRole.INSTRUCTOR)) {
                 throw new ForbiddenException('Not allowed to send announcements');
@@ -49,7 +45,6 @@ export class NotificationService {
             throw new ForbiddenException('Students cannot send notifications to others');
         }
 
-        // create notification
         const doc = await this.notificationModel.create({
             recipientId: new Types.ObjectId(dto.recipientId),
             type: dto.type,
@@ -58,40 +53,36 @@ export class NotificationService {
             sentBy: new Types.ObjectId(senderId),
         });
 
-        // audit log
         await this.auditModel.create({
             notificationId: doc._id,
             eventType: 'SENT',
             userId: new Types.ObjectId(senderId),
         });
 
-        // increment recipient unread counter (atomic)
         await this.userModel.updateOne(
             { _id: doc.recipientId },
             { $inc: { unreadNotificationCount: 1 } }
         ).exec();
 
-        // optional email sending (non-blocking)
         (async () => {
             try {
                 const recipient = await this.userModel.findById(doc.recipientId).lean();
                 if (recipient?.email) {
                     const subject = dto.type === NotificationType.Announcement ? '[Announcement]' : 'New notification';
-                    // You should implement sendNotificationEmail on MailService or reuse existing template
+
                     await this.mail.sendNotificationEmail(recipient.email, subject, dto.message);
                 }
             } catch (e) {
-                // don't throw; record audit
+
                 await this.auditModel.create({
                     notificationId: doc._id,
                     eventType: 'SENT',
                     userId: new Types.ObjectId(senderId),
-                    // details field optional; if your audit schema supports details you can add
+
                 });
             }
         })();
 
-        // realtime emit
         this.gateway.emitToUser(String(doc.recipientId), 'notification:new', {
             id: String(doc._id),
             type: doc.type,
@@ -105,48 +96,7 @@ export class NotificationService {
         return doc;
     }
 
-    // async createNotification(dto: CreateNotificationDto, senderId: string) {
-    //     const sender = await this.userModel.findById(senderId).lean();
-    //     if (!sender) throw new NotFoundException('Sender not found');
-    //
-    //     // Policy: Announcements only by admin/Instructor; Students cannot target others
-    //     if (
-    //         dto.type === NotificationType.Announcement &&
-    //         !(sender.role === UserRole.ADMIN || sender.role === UserRole.INSTRUCTOR)
-    //     ) {
-    //         throw new ForbiddenException('Not allowed to send announcements');
-    //     }
-    //     if (sender.role === UserRole.STUDENT && dto.recipientId !== senderId) {
-    //         throw new ForbiddenException('Students cannot send notifications to others');
-    //     }
-    //
-    //     const doc = await this.notificationModel.create({
-    //         recipientId: new Types.ObjectId(dto.recipientId),
-    //         type: dto.type,
-    //         message: dto.message,
-    //         courseId: dto.courseId ? new Types.ObjectId(dto.courseId) : undefined,
-    //         sentBy: new Types.ObjectId(senderId),
-    //     });
-    //
-    //     await this.auditModel.create({
-    //         notificationId: doc._id,
-    //         eventType: 'SENT',
-    //         userId: new Types.ObjectId(senderId),
-    //     });
-    //
-    //     // Realtime update
-    //     this.gateway.emitToUser(String(doc.recipientId), 'notification:new', {
-    //         id: String(doc._id),
-    //         type: doc.type,
-    //         message: doc.message,
-    //         createdAt: (doc as any).createdAt,
-    //         read: doc.read,
-    //         courseId: doc.courseId ? String(doc.courseId) : undefined,
-    //         sentBy: String(doc.sentBy),
-    //     });
-    //
-    //     return doc;
-    // }
+
 
     async sendToMany(userIds: string[], input: { type: NotificationType; message: string; courseId?: string }, senderId: string) {
         const sender = await this.userModel.findById(senderId).lean();
@@ -159,7 +109,7 @@ export class NotificationService {
             // instructor course membership checks here if required
         }
 
-        // Build documents to insert
+
         const docsToInsert = userIds.map((u) => ({
             recipientId: new Types.ObjectId(u),
             type: input.type,
@@ -168,10 +118,8 @@ export class NotificationService {
             sentBy: new Types.ObjectId(senderId),
         }));
 
-        // insertMany returns inserted docs
         const inserted = await this.notificationModel.insertMany(docsToInsert);
 
-        // bulk audit entries
         await this.auditModel.insertMany(
             inserted.map((n) => ({
                 notificationId: n._id,
@@ -180,7 +128,6 @@ export class NotificationService {
             }))
         );
 
-        // increment unread counts atomically per user (use bulkWrite to minimize roundtrips)
         const bulkOps = userIds.map((uid) => ({
             updateOne: {
                 filter: { _id: new Types.ObjectId(uid) },
@@ -189,7 +136,6 @@ export class NotificationService {
         }));
         if (bulkOps.length) await this.userModel.bulkWrite(bulkOps);
 
-        // emit per user
         for (const n of inserted) {
             this.gateway.emitToUser(String(n.recipientId), 'notification:new', {
                 id: String(n._id),
@@ -205,7 +151,7 @@ export class NotificationService {
         return { count: inserted.length };
     }
 
-    // Mark one notification as read (decrement unread count)
+    // Mark single notification as read
     async markAsRead(notificationId: string, userId: string) {
         const n = await this.notificationModel.findById(notificationId);
         if (!n) throw new NotFoundException('Notification not found');
@@ -217,7 +163,6 @@ export class NotificationService {
             n.read = true;
             await n.save();
 
-            // decrement user's unread count but floor at 0
             await this.userModel.updateOne(
                 { _id: new Types.ObjectId(userId), unreadNotificationCount: { $gt: 0 } },
                 { $inc: { unreadNotificationCount: -1 } }
@@ -393,13 +338,95 @@ export class NotificationService {
 
 
 
+// async createNotification(dto: CreateNotificationDto, senderId: string) {
+//     const sender = await this.userModel.findById(senderId).lean();
+//     if (!sender) throw new NotFoundException('Sender not found');
+//
+//     // Policy: Announcements only by admin/Instructor; Students cannot target others
+//     if (
+//         dto.type === NotificationType.Announcement &&
+//         !(sender.role === UserRole.ADMIN || sender.role === UserRole.INSTRUCTOR)
+//     ) {
+//         throw new ForbiddenException('Not allowed to send announcements');
+//     }
+//     if (sender.role === UserRole.STUDENT && dto.recipientId !== senderId) {
+//         throw new ForbiddenException('Students cannot send notifications to others');
+//     }
+//
+//     const doc = await this.notificationModel.create({
+//         recipientId: new Types.ObjectId(dto.recipientId),
+//         type: dto.type,
+//         message: dto.message,
+//         courseId: dto.courseId ? new Types.ObjectId(dto.courseId) : undefined,
+//         sentBy: new Types.ObjectId(senderId),
+//     });
+//
+//     await this.auditModel.create({
+//         notificationId: doc._id,
+//         eventType: 'SENT',
+//         userId: new Types.ObjectId(senderId),
+//     });
+//
+//     // Realtime update
+//     this.gateway.emitToUser(String(doc.recipientId), 'notification:new', {
+//         id: String(doc._id),
+//         type: doc.type,
+//         message: doc.message,
+//         createdAt: (doc as any).createdAt,
+//         read: doc.read,
+//         courseId: doc.courseId ? String(doc.courseId) : undefined,
+//         sentBy: String(doc.sentBy),
+//     });
+//
+//     return doc;
+// }
 
 
 
 
 
-
-
+// async createNotification(dto: CreateNotificationDto, senderId: string) {
+//     const sender = await this.userModel.findById(senderId).lean();
+//     if (!sender) throw new NotFoundException('Sender not found');
+//
+//     // Policy: Announcements only by admin/Instructor; Students cannot target others
+//     if (
+//         dto.type === NotificationType.Announcement &&
+//         !(sender.role === UserRole.ADMIN || sender.role === UserRole.INSTRUCTOR)
+//     ) {
+//         throw new ForbiddenException('Not allowed to send announcements');
+//     }
+//     if (sender.role === UserRole.STUDENT && dto.recipientId !== senderId) {
+//         throw new ForbiddenException('Students cannot send notifications to others');
+//     }
+//
+//     const doc = await this.notificationModel.create({
+//         recipientId: new Types.ObjectId(dto.recipientId),
+//         type: dto.type,
+//         message: dto.message,
+//         courseId: dto.courseId ? new Types.ObjectId(dto.courseId) : undefined,
+//         sentBy: new Types.ObjectId(senderId),
+//     });
+//
+//     await this.auditModel.create({
+//         notificationId: doc._id,
+//         eventType: 'SENT',
+//         userId: new Types.ObjectId(senderId),
+//     });
+//
+//     // Realtime update
+//     this.gateway.emitToUser(String(doc.recipientId), 'notification:new', {
+//         id: String(doc._id),
+//         type: doc.type,
+//         message: doc.message,
+//         createdAt: (doc as any).createdAt,
+//         read: doc.read,
+//         courseId: doc.courseId ? String(doc.courseId) : undefined,
+//         sentBy: String(doc.sentBy),
+//     });
+//
+//     return doc;
+// }
 
 
 

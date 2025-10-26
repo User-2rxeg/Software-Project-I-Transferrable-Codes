@@ -4,7 +4,6 @@ export interface JwtPayload {
     sub: string;   // user._id
     email: string;
     role: UserRole;
-    // Optional if you later add refresh rotation/MFA flows:
     jti?: string;
     mfa?: boolean;
 }

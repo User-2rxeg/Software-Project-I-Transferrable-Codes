@@ -1,26 +1,8 @@
 import {IsEnum, IsMongoId, IsOptional, IsString, Length} from "class-validator";
-// import {NotificationType} from "../Models/Notification";
-//
-// export class CreateNotificationDto {
-//     @IsMongoId()
-//     recipientId!: string;
-//
-//     @IsEnum(NotificationType)
-//     type!: NotificationType;
-//
-//     @IsString()
-//     @Length(1, 2000)
-//     message!: string;
-//
-//     @IsOptional()
-//     @IsMongoId()
-//     courseId?: string;
-// }
-
-
-
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {NotificationType} from "../Models/Notification";
+
+
 export class CreateNotificationDto {
     @ApiProperty({ description: 'Recipient user id', example: '64f1b2...' })
     @IsMongoId()
@@ -60,9 +42,7 @@ export class UpdateNotificationDto {
     courseId?: string;
 }
 
-/**
- * Response DTO (simplified). Replace fields if your DB model differs.
- */
+
 export class NotificationDto {
     @ApiProperty({ description: 'Notification id', example: '650...' })
     _id!: string;
@@ -85,7 +65,6 @@ export class NotificationDto {
     @ApiProperty({ description: 'When created', type: String, format: 'date-time' })
     createdAt!: Date;
 }
-
 /**
  * Audit entry DTO (for notifications audit)
  */

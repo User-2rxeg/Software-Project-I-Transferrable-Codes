@@ -29,37 +29,3 @@ import { AuthModule } from '../../../Authentication/Module/Authentication-Module
 export class ChatModule {}
 
 
-
-
-
-
-//@Module({
-    //imports: [
-        //forwardRef(() => AuthModule),
-        //MongooseModule.forFeature([
-          //  { name: Conversation.name, schema: ConversationSchema },
-        //    { name: Message.name, schema: MessageSchema },
-      //  ]),
-    //],
-    //providers: [ChatService, ChatGateway],
-    //controllers: [ChatController],
-  //  exports: [ChatService],
-//})
-//export class ChatModule {}
-
-
-
-// @Module({
-//     imports: [
-//         MongooseModule.forFeature([
-//             { name: Conversation.name, schema: ConversationSchema },
-//             { name: Message.name, schema: MessageSchema },
-//         ]),
-//         AuthModule,
-//         JwtModule.register({}),
-//     ],
-//     controllers: [ChatController],
-//     providers: [ChatService, ChatGateway],
-//     exports: [ChatService],
-// })
-// export class ChatModule {}

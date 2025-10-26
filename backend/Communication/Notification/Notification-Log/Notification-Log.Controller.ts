@@ -59,35 +59,5 @@ export class NotificationAuditController {
         return this.audit.byNotification(id, page, limit);
     }
 }
-// @Controller('notifications/audit')
-// @UseGuards(JwtAuthGuard, RolesGuard)
-// @Roles(UserRole.ADMIN)
-// export class NotificationAuditController {
-//     constructor(private readonly audit: NotificationAuditService) {}
-//
-//     @Get()
-//     async list(
-//         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-//         @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
-//         @Query('notificationId') notificationId?: string,
-//         @Query('userId') userId?: string,
-//         @Query('eventType') eventType?: 'SENT' | 'READ' | 'DELETED',
-//         @Query('from') from?: string,
-//         @Query('to') to?: string,
-//     ) {
-//         return this.audit.list({ page, limit, notificationId, userId, eventType, from, to });
-//     }
-//
-//
-//     @Get('by-notification/:id')
-//     async byNotif(
-//         @Param('id') id: string,
-//         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-//         @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
-//     ) {
-//         return this.audit.byNotification(id, page, limit);
-//     }
-//
-// }
 
 

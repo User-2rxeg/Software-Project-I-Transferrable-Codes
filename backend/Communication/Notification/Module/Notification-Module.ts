@@ -19,7 +19,6 @@ import {MailModule} from "../../../Authentication/Email/Email-Module";
 @Module({
     imports: [
         MongooseModule.forFeature([
-            // Use the class token so it matches @InjectModel(Notification.name)
             { name: Notification.name, schema: NotificationSchema },
             { name: NotificationAuditLog.name, schema: NotificationAuditLogSchema },
             { name: User.name, schema: UserSchema },

@@ -54,11 +54,11 @@ export class UserService {
         if (updateData.email) {
             updateData.email = this.normalizeEmail(updateData.email);
         }
-        // Directly update the document in DB without stripping sensitive fields
+        // Directly update the user in DB without stripping sensitive fields
         const updatedUser = await this.userModel.findByIdAndUpdate(
             userId,
             {$set: updateData},
-            {new: true, runValidators: true} // returns updated document and ensures schema validation
+            {new: true, runValidators: true}
         ).exec();
 
         if (!updatedUser) {
@@ -117,7 +117,7 @@ export class UserService {
     }
 
     async findByIdSelectSecret(id: string): Promise<UserDocument | null> {
-        // explicitly include hidden fields
+        // include hidden fields
         return this.userModel.findById(id).select('+mfaSecret +mfaBackupCodes').exec();
     }
 
@@ -131,13 +131,12 @@ export class UserService {
         return true;
     }
 
-// SEARCH HELPER METHOD
+
     private clampLimit(limit: number) {
         if (!Number.isFinite(limit) || limit <= 0) return 20;
         return Math.min(limit, 100); // hard cap to protect DB
     }
 
-    // SEARCH HELPER METHOD
     async paginate(filter: Record<string, any>, {page = 1, limit = 20}: PageOpts) {
         const _limit = this.clampLimit(limit);
         const _page = Math.max(1, Number(page) || 1);
@@ -157,7 +156,7 @@ export class UserService {
         return {items, total, page: _page, pages: Math.ceil(total / _limit), limit: _limit};
     }
 
-    //CAN SEARCH USERS BY ANY ROLE, JUST DECLARE ROLE IN PARAMETERS
+
     async searchUsers(params: {
         q?: string;
         role?: UserRole;
@@ -171,82 +170,17 @@ export class UserService {
 
         if (q && q.trim()) {
             const term = q.trim();
-            // Regex search on name/email (case-insensitive). Fast for prefix; OK for general use at this scale.
+
             filter.$or = [
                 {name: {$regex: term, $options: 'i'}},
                 {email: {$regex: term, $options: 'i'}},
             ];
 
-            // If you decide to enable text index, replace block above with:
+
             //filter.$text = { $search: term };
         }
 
         return this.paginate(filter, {page, limit});
-    }
-
-
-// Soft delete: mark deletedAt IN THE DATABASE instead of removing document
-
-    async softDelete(userId: string) {
-        if (!Types.ObjectId.isValid(userId)) {
-            throw new BadRequestException('Invalid user id');
-        }
-        const updated = await this.userModel
-            .findByIdAndUpdate(userId, {deletedAt: new Date()}, {new: true})
-            .exec();
-        if (!updated) throw new NotFoundException('User not found');
-        // You can return a minimal payload
-        return {success: true, id: String(updated._id), deletedAt: updated.deletedAt};
-    }
-
-// Restore: unset deletedAt
-    async restore(userId: string) {
-        if (!Types.ObjectId.isValid(userId)) {
-            throw new BadRequestException('Invalid user id');
-        }
-        const updated = await this.userModel
-            .findByIdAndUpdate(userId, {deletedAt: null}, {new: true})
-            .exec();
-        if (!updated) throw new NotFoundException('User not found');
-        return {success: true, id: String(updated._id)};
-    }
-
-// Autocomplete: lightweight search for UI suggestions
-    async autocomplete(q: string, limit = 10) {
-        const term = (q ?? '').trim();
-        if (!term) return [];
-
-        // sanitize limit
-        const l = Math.min(Math.max(1, Number(limit) || 10), 50);
-
-        // match name or email; exclude soft-deleted users (deletedAt != null)
-        const regex = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'); // escape user input
-        const users = await this.userModel
-            .find({
-                deletedAt: null,
-                $or: [{name: {$regex: regex}}, {email: {$regex: regex}}],
-            })
-            .select('_id name email role') // only the fields the UI needs
-            .limit(l)
-            .lean()
-            .exec();
-
-        return users;
-    }
-
-// Unread Messages Counter
-    async incrementUnread(userId: string) {
-        await this.userModel.findByIdAndUpdate(userId, {
-            $inc: {unreadNotificationCount: 1},
-        });
-    }
-
-    // Once read should reset,Helper or main function in notifications? check again
-
-    async resetUnread(userId: string) {
-        await this.userModel.findByIdAndUpdate(userId, {
-            unreadNotificationCount: 0,
-        });
     }
 
 

@@ -50,31 +50,3 @@ export class FeedbackController {
     }
 }
 
-// @Controller('feedback')
-// export class FeedbackController {
-//     constructor(private readonly feedback: FeedbackService) {}
-//
-//     // Public endpoint to submit feedback; CurrentUser optional
-//     @Post()
-//     async create(@Body() body: CreateFeedbackDto, @CurrentUser() user?: any) {
-//         return this.feedback.create({
-//             userId: user?.sub,
-//             message: body.message,
-//             contactEmail: body.contactEmail,
-//             category: body.category,
-//         });
-//     }
-//
-//
-//     @Get('admin')
-//     @UseGuards(JwtAuthGuard, RolesGuard)
-//     @Roles(UserRole.ADMIN)
-//     list(
-//         @Query('q') q?: string,
-//         @Query('category') category?: string,
-//         @Query('page') page?: string,
-//         @Query('limit') limit?: string,
-//     ) {
-//         return this.feedback.list({ q, category, page: Number(page), limit: Number(limit) });
-//     }
-// }

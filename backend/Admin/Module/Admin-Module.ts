@@ -31,22 +31,5 @@ import {NotificationAuditLog, NotificationAuditLogSchema} from "../../Communicat
 })
 export class AdminModule {}
 
-// @Module({
-//     imports: [
-//         MongooseModule.forFeature([
-//             { name: User.name, schema: UserSchema },
-//             { name: Notification.name, schema: NotificationSchema },
-//             { name: NotificationAuditLog.name, schema: NotificationAuditLogSchema },
-//             { name: BlacklistedToken.name, schema: BlacklistedTokenSchema },
-//         ]),
-//         AuthModule,
-//         NotificationModule,
-//         UserModule,
-//         AuditLogModule,
-//         BackupModule,
-//     ],
-//     controllers: [AdminController],
-//     providers: [AdminService],
-// })
-// export class AdminModule {}
+
 

@@ -17,7 +17,6 @@ export class Message {
     @Prop({ type: String })
     attachmentUrl?: string;
 
-    // Optional: readers list (OK for small groups); for scale rely on Conversation.lastReadBy
     @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
     readBy?: Types.ObjectId[];
 

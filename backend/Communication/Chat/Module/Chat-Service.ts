@@ -29,10 +29,12 @@ export class ChatService {
     }
 
     async createChat(dto: CreateChatDto, creatorId: string) {
+
         const creator = this.toObjId(creatorId);
-        // Ensure creator in participants
+
         const set = new Set<string>((dto.participants ?? []).map(String));
         set.add(String(creator));
+
         const members = Array.from(set).map(this.toObjId);
 
         const count = await this.userModel.countDocuments({ _id: { $in: members } });

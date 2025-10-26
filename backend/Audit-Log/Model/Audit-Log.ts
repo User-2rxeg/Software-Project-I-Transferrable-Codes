@@ -48,10 +48,6 @@ export class AuditLog {
     @Prop({ type: String, required: true, enum:Object.values(AuditEvent), index: true })
     event!: AuditEvent; // use AuditEvent in code
 
-    //     //@Prop({ type: String, required: true, index: true })
-//     @Prop({ type: String, required: true })
-//     event!: AuditEvent;
-
     @Prop({ type: Date, default: Date.now, index: true })
     timestamp: Date = new Date();
 

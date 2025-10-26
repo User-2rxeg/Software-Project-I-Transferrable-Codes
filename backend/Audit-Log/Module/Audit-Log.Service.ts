@@ -20,14 +20,14 @@ export class AuditLogService {
             details: details ?? {},
             timestamp: new Date()
         });
-        // if(userId){
-        //     if(Types.ObjectId.isValid(String(userId))){
-        //        userId=new Types.ObjectId(String(userId)) as any;
-        //     }
-        //     else{
-        //         throw new BadRequestException('Invalid user id');
-        //     }
-        // }
+        if(userId){
+            if(Types.ObjectId.isValid(String(userId))){
+               userId=new Types.ObjectId(String(userId)) as any;
+            }
+            else{
+                throw new BadRequestException('Invalid user id');
+            }
+        }
     }
 
     async record(event: AuditEvent, userId?: string, details?: Record<string, any>) {

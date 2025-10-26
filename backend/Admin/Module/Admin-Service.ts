@@ -130,7 +130,6 @@ export class AdminService {
             this.auditModel.distinct('userId', { timestamp: { $gte: weekAgo } }).exec(),
         ]);
 
-        // convert role agg to map
         const byRole: Record<string, number> = {};
         byRoleAgg.forEach(r => byRole[r._id ?? 'unknown'] = r.count);
 
@@ -182,21 +181,6 @@ export class AdminService {
         };
     }
 
-
-
-    async lockUser(userId: string, adminId: string) {
-        const doc = await this.users.findByIdAndUpdate(userId, {deletedAt: new Date()}, {new: true}).exec();
-        if (!doc) throw new NotFoundException('User not found');
-        await this.audit.record(AuditEvent.ADMIN_USER_LOCK, adminId, {userId});
-        return {success: true};
-    }
-
-    async unlockUser(userId: string, adminId: string) {
-        const doc = await this.users.findByIdAndUpdate(userId, {deletedAt: null}, {new: true}).exec();
-        if (!doc) throw new NotFoundException('User not found');
-        await this.audit.record(AuditEvent.ADMIN_USER_UNLOCK, adminId, {userId});
-        return {success: true};
-    }
 
 
     async exportUsersCSV(): Promise<{ filepath: string }> {
@@ -260,23 +244,6 @@ export class AdminService {
         return {ok: true};
     }
 
-
-    // BY TOKEN BLACKLIST
-
-    // async forceLogoutUser(userId: string, adminId: string, token: string) {
-    //     if (!this.blacklist) {
-    //         await this.audit.record(AuditEvent.ADMIN_FORCE_LOGOUT, adminId, {
-    //             userId,
-    //             note: 'BlacklistService not available',
-    //         });
-    //         return { success: true, note: 'BlacklistService not available; only logged event' };
-    //     }
-    //
-    //     await this.blacklist.addToBlacklist(token);
-    //     await this.audit.record(AuditEvent.ADMIN_FORCE_LOGOUT, adminId, { userId });
-    //     await this.audit.record(AuditEvent.TOKEN_BLACKLISTED, adminId, { userId });
-    //     return { success: true };
-    // }
 
 
 }

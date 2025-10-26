@@ -18,7 +18,6 @@ export class Conversation {
     @Prop({ type: Types.ObjectId, ref: 'Course' })
     courseId?: Types.ObjectId;
 
-    // Per-user last read message for fast unread computations, keyed by userId string
     @Prop({ type: Map, of: Types.ObjectId, default: {} })
     lastReadBy?: Map<string, Types.ObjectId>;
 
@@ -37,7 +36,6 @@ export class Conversation {
 
 export const ConversationSchema = SchemaFactory.createForClass(Conversation);
 
-// Lists ordered by latest activity
 ConversationSchema.index({ participants: 1, lastMessageAt: -1 });
 ConversationSchema.index({ participants: 1, updatedAt: -1 });
 

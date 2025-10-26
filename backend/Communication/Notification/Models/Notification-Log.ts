@@ -21,12 +21,12 @@ export class NotificationAuditLog {
     eventType!: NotificationEventType;
 
     @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
-    userId!: Types.ObjectId; // ACTOR who performed the event
+    userId!: Types.ObjectId;
 }
 
 export const NotificationAuditLogSchema = SchemaFactory.createForClass(NotificationAuditLog);
 
-// Query by notification/time or actor/time
+
 NotificationAuditLogSchema.index({ notificationId: 1, createdAt: -1 });
 NotificationAuditLogSchema.index({ userId: 1, eventType: 1, createdAt: -1 });
 NotificationAuditLogSchema.index({ createdAt: -1 });

@@ -15,10 +15,9 @@ export class Feedback {
     contactEmail?: string | null;
 
     @Prop({ type: String, default: 'general', index: true })
-    category?: string; // general | bug | idea | other
+    category?: string; // Consider enum for Category for a list of options
 }
 
 export const FeedbackSchema = SchemaFactory.createForClass(Feedback);
 FeedbackSchema.index({ createdAt: -1 });
 
-// Consider enum for Category for a list of options
