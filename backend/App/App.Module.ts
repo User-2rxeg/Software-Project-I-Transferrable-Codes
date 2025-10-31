@@ -6,8 +6,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 
 // import { AuditLogModule } from '../Audit-Log/Module/Audit-Log.Module';
-// import { AuthModule } from '../Authentication/Module/Authentication-Module';
-// import { UserModule } from '../User/Module/User-Module';
+
+ import { UserModule } from '../User/Module/User-Module';
+import {AuthModule} from "../Authentication/Module/Authentication-Module";
+import {AuditLogModule} from "../Audit-Log/Module/Audit-Log.Module";
 // import { NotificationModule } from '../Communication/Notification/Module/Notification-Module';
 //
 // import { AdminModule } from '../Admin/Module/Admin-Module';
@@ -29,9 +31,9 @@ import { ScheduleModule } from '@nestjs/schedule';
             }),
             inject: [ConfigService],
         }),
-    //     AuditLogModule,
-    //     AuthModule,
-    //     UserModule,
+        AuditLogModule,
+        AuthModule,
+        UserModule,
     //     NotificationModule,
     //     AdminModule,
     //     ChatModule,
