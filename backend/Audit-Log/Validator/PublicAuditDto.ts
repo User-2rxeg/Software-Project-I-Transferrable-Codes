@@ -1,6 +1,7 @@
 
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { AuditEvent } from '../Model/Audit-Log';
+import {Logs} from "../Model/Logs";
+
 
 export class PublicAuditDto {
     @ApiProperty({ example: '64b8f7a0c2f4e9b3f1a2d3c4', description: 'MongoDB ObjectId' })
@@ -9,8 +10,8 @@ export class PublicAuditDto {
     @ApiPropertyOptional({ example: '64b8f7a0c2f4e9b3f1a2d3c4' })
     userId?: string;
 
-    @ApiProperty({ enum: Object.values(AuditEvent) })
-    event!: AuditEvent;
+    @ApiProperty({ enum: Object.values(Logs) })
+    event!: Logs;
 
     @ApiPropertyOptional({ type: Object, description: 'Additional event-specific details' })
     details?: Record<string, any>;

@@ -10,11 +10,13 @@ import {AuditLogService} from "./Audit-Log.Service";
 import {CreateAuditLogDto, ListAuditQueryDto, UpdateAuditLogDto} from "../Validator/Audit-Log.Validator";
 import {RolesGuard} from "../../Authentication/Guards/Roles-Guard";
 
-import {AuditEvent} from "../Model/Audit-Log";
+
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiOkResponse, ApiCreatedResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import {PublicAuditDto} from "../Validator/PublicAuditDto";
 import {JwtAuthGuard} from "../../Authentication/Guards/Authentication-Guard";
 import {Roles} from "../../Authentication/Decorators/Roles-Decorator";
+import {Logs} from "../Model/Logs";
+
 
 
 @ApiTags('audit')
@@ -106,7 +108,7 @@ export class AuditLogController {
     @ApiOkResponse({ type: [PublicAuditDto] })
     @Get('event/:event')
     async byEvent(
-        @Param('event') event: AuditEvent,
+        @Param('event') event: Logs,
         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
         @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit = 20,
         @Query('from') from?: string,

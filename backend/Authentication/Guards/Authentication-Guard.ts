@@ -10,8 +10,10 @@ import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../Decorators/Public-Decorator';
 import { AuthService } from '../Module/Authentication-Service';
 import { AuditLogService } from '../../Audit-Log/Module/Audit-Log.Service';
-import { AuditEvent } from '../../Audit-Log/Model/Audit-Log';
+
 import { normalizeBearerToken } from '../Token/token.helper';
+import {Logs} from "../../Audit-Log/Model/Logs";
+
 
 @Injectable()
 export class JwtAuthGuard extends NestAuthGuard('jwt') {
@@ -35,7 +37,7 @@ export class JwtAuthGuard extends NestAuthGuard('jwt') {
         try {
             await super.canActivate(context);
         } catch (err) {
-            await this.audit.log(AuditEvent.UNAUTHORIZED_ACCESS, undefined, {
+            await this.audit.log(Logs.UNAUTHORIZED_ACCESS, undefined, {
                 reason: 'JWT_VALIDATION_FAILED',
             }).catch(() => {});
             throw err;
@@ -46,7 +48,7 @@ export class JwtAuthGuard extends NestAuthGuard('jwt') {
         const user = (req as any).user;
 
         if (!user) {
-            await this.audit.log(AuditEvent.UNAUTHORIZED_ACCESS, undefined, {
+            await this.audit.log(Logs.UNAUTHORIZED_ACCESS, undefined, {
                 reason: 'NO_USER_IN_REQ',
             }).catch(() => {});
             throw new UnauthorizedException('Unauthorized');
@@ -59,7 +61,7 @@ export class JwtAuthGuard extends NestAuthGuard('jwt') {
         // Check blacklist (logout)
         const isBlacklisted = await this.auth.isAccessTokenBlacklisted(token);
         if (isBlacklisted) {
-            await this.audit.log(AuditEvent.UNAUTHORIZED_ACCESS, user.sub, {
+            await this.audit.log(Logs.UNAUTHORIZED_ACCESS, user.sub, {
                 reason: 'BLACKLISTED_TOKEN',
             }).catch(() => {});
             throw new UnauthorizedException('Session expired. Please sign in again.');

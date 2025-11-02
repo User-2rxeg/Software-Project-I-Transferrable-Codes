@@ -17,10 +17,12 @@ import { AuditLogService } from '../../Audit-Log/Module/Audit-Log.Service';
 import { UserRole } from '../../User/Model/User';
 
 import { MailService } from '../Email/Email-Service';
-import { AuditEvent } from '../../Audit-Log/Model/Audit-Log';
+
 import { CreateUserDto } from '../../User/Validator/User-Validator';
 import {BlacklistedToken, BlackListedTokenDocument,} from "../Token/blacklisted-token.schema";
 import {normalizeBearerToken} from "../Token/token.helper";
+import {Logs} from "../../Audit-Log/Model/Logs";
+
 
 
 type SafeUser = {
@@ -70,15 +72,15 @@ export class AuthService {
 
         try {
             await this.mail.sendVerificationEmail(newUser.email, otpCode);
-            await this.audit.log(AuditEvent.OTP_SENT, String(newUser._id), { purpose: 'verification' }).catch(() => {});
+            await this.audit.log(Logs.OTP_SENT, String(newUser._id), { purpose: 'verification' }).catch(() => {});
         } catch (e: any) {
-            await this.audit.log(AuditEvent.OTP_SEND_FAILED, String(newUser._id), {
+            await this.audit.log(Logs.OTP_SEND_FAILED, String(newUser._id), {
                 email: newUser.email,
                 reason: e?.message ?? String(e),
             }).catch(() => {});
         }
 
-        await this.audit.log(AuditEvent.USER_REGISTERED, String(newUser._id), { email: newUser.email }).catch(() => {});
+        await this.audit.log(Logs.USER_REGISTERED, String(newUser._id), { email: newUser.email }).catch(() => {});
 
         return {
             message: 'Registered. Verify email via OTP.',
@@ -94,7 +96,7 @@ export class AuthService {
 
 
         if (!user.otpCode || !user.otpExpiresAt || user.otpCode !== otpCode || new Date() > user.otpExpiresAt) {
-            await this.audit.log(AuditEvent.OTP_SEND_FAILED, String(user._id), {
+            await this.audit.log(Logs.OTP_SEND_FAILED, String(user._id), {
                 email,
                 reason: 'INVALID_OR_EXPIRED'
             }).catch(() => {
@@ -110,7 +112,7 @@ export class AuthService {
 
         await this.mail.VerifiedEmail(user.email,'Your email has been successfully verified. You can now log in to your account.');
 
-        await this.audit.log(AuditEvent.EMAIL_VERIFIED, String(user._id), {email}).catch(() => {
+        await this.audit.log(Logs.EMAIL_VERIFIED, String(user._id), {email}).catch(() => {
         });
 
         return { user: {id: user._id, email: user.email, role: user.role}};
@@ -123,14 +125,14 @@ export class AuthService {
 
         if (!user || !user.passwordHash) {
             await this.audit
-                .log(AuditEvent.LOGIN_FAILED, undefined, { email, reason: 'UNKNOWN_EMAIL_OR_NO_PASSWORD' })
+                .log(Logs.LOGIN_FAILED, undefined, { email, reason: 'UNKNOWN_EMAIL_OR_NO_PASSWORD' })
                 .catch(() => {});
             throw new UnauthorizedException('Invalid credentials');
         }
 
         const ok = await bcrypt.compare(plainPassword, user.passwordHash);
         if (!ok) {
-            await this.audit.log(AuditEvent.LOGIN_FAILED, String(user._id), { email, reason: 'INVALID_PASSWORD' }).catch(() => {});
+            await this.audit.log(Logs.LOGIN_FAILED, String(user._id), { email, reason: 'INVALID_PASSWORD' }).catch(() => {});
             throw new UnauthorizedException('Invalid credentials');
         }
 
@@ -150,7 +152,7 @@ export class AuthService {
         const payload = { sub: user._id, email: user.email, role: user.role };
         const access_token = await this.jwtService.signAsync(payload, { expiresIn: '7d' });
 
-        await this.audit.log(AuditEvent.LOGIN_SUCCESS, user._id, { email: user.email, role: user.role }).catch(() => {});
+        await this.audit.log(Logs.LOGIN_SUCCESS, user._id, { email: user.email, role: user.role }).catch(() => {});
 
         return { access_token, user };
     }
@@ -200,7 +202,7 @@ export class AuthService {
             if (err.code !== 11000) throw err; // ignore duplicate-key
         }
 
-        await this.audit.log(AuditEvent.LOGOUT, decoded.sub, {}).catch(()=>{});
+        await this.audit.log(Logs.LOGOUT, decoded.sub, {}).catch(()=>{});
         return { message: 'Logout successful' };
     }
     async isAccessTokenBlacklisted(token: string) {
@@ -244,17 +246,17 @@ export class AuthService {
         try {
             if (purpose === 'verification') {
                 await this.mail.sendVerificationEmail(user.email!, otpCode);
-                await this.audit.log(AuditEvent.OTP_SENT, String(user._id), { purpose: 'verification' }).catch(() => {});
+                await this.audit.log(Logs.OTP_SENT, String(user._id), { purpose: 'verification' }).catch(() => {});
             } else if (purpose === 'password-reset') {
                 await this.mail.sendPasswordResetEmail(user.email!, otpCode);
-                await this.audit.log(AuditEvent.PASSWORD_RESET_REQUESTED, String(user._id), {}).catch(() => {});
+                await this.audit.log(Logs.PASSWORD_RESET_REQUESTED, String(user._id), {}).catch(() => {});
             } else {
                 await this.mail.sendVerificationEmail(user.email!, otpCode); // reuse template for login OTP
-                await this.audit.log(AuditEvent.OTP_SENT, String(user._id), { purpose: 'login' }).catch(() => {});
+                await this.audit.log(Logs.OTP_SENT, String(user._id), { purpose: 'login' }).catch(() => {});
             }
         } catch (err: any) {
             await this.audit
-                .log(AuditEvent.OTP_SEND_FAILED, String(user._id), {
+                .log(Logs.OTP_SEND_FAILED, String(user._id), {
                     email: user.email,
                     purpose,
                     reason: err?.message ?? String(err),
@@ -307,7 +309,7 @@ export class AuthService {
             passwordResetOtpExpiresAt: null,
         });
 
-        await this.audit.log(AuditEvent.PASSWORD_CHANGED, String(user._id), { method: 'otp-reset' }).catch(() => {});
+        await this.audit.log(Logs.PASSWORD_CHANGED, String(user._id), { method: 'otp-reset' }).catch(() => {});
         return { message: 'Password changed' };
     }
 
@@ -319,7 +321,7 @@ export class AuthService {
     async regenerateBackupCodes(userId: string) {
         const backupCodes = this.generateBackupCodes();
         await this.userService.updateUserInternal(userId, { mfaBackupCodes: backupCodes });
-        await this.audit.log(AuditEvent.MFA_ENABLED, userId, { action: 'regen_backup_codes' }).catch(() => {});
+        await this.audit.log(Logs.MFA_ENABLED, userId, { action: 'regen_backup_codes' }).catch(() => {});
         return { backupCodes };
     }
 
@@ -339,7 +341,7 @@ export class AuthService {
         });
 
         await this.audit
-            .log(AuditEvent.MFA_ENABLED, userId ? new Types.ObjectId(userId) : undefined, { action: 'setup_generated' })
+            .log(Logs.MFA_ENABLED, userId ? new Types.ObjectId(userId) : undefined, { action: 'setup_generated' })
             .catch(() => {});
 
         return { otpauthUrl: secret.otpauth_url, base32: secret.base32, backupCodes };
@@ -357,12 +359,12 @@ export class AuthService {
         });
 
         if (!ok) {
-            await this.audit.log(AuditEvent.MFA_DISABLED, userId, { reason: 'invalid_setup_token' }).catch(() => {});
+            await this.audit.log(Logs.MFA_DISABLED, userId, { reason: 'invalid_setup_token' }).catch(() => {});
             throw new UnauthorizedException('Invalid TOTP token');
         }
 
         await this.userService.updateUserInternal(userId, { mfaEnabled: true });
-        await this.audit.log(AuditEvent.MFA_ENABLED, userId, { action: 'enabled' }).catch(() => {});
+        await this.audit.log(Logs.MFA_ENABLED, userId, { action: 'enabled' }).catch(() => {});
         return { enabled: true };
     }
 
@@ -384,7 +386,7 @@ export class AuthService {
         }
 
         if (!ok) {
-            await this.audit.log(AuditEvent.LOGIN_FAILED, userId, { reason: 'invalid_mfa' }).catch(() => {});
+            await this.audit.log(Logs.LOGIN_FAILED, userId, { reason: 'invalid_mfa' }).catch(() => {});
             throw new UnauthorizedException('Invalid MFA token or backup code');
         }
 
@@ -392,7 +394,7 @@ export class AuthService {
         const payload = { sub: user._id.toString(), email: user.email, role: user.role };
         const access_token = await this.jwtService.signAsync(payload, { expiresIn: '7d' });
 
-        await this.audit.log(AuditEvent.LOGIN_SUCCESS, userId, { mfa: true }).catch(() => {});
+        await this.audit.log(Logs.LOGIN_SUCCESS, userId, { mfa: true }).catch(() => {});
         return { access_token, user: { _id: user._id.toString(), email: user.email, role: user.role } };
     }
 
@@ -403,7 +405,7 @@ export class AuthService {
             mfaBackupCodes: [],
         });
 
-        await this.audit.log(AuditEvent.MFA_DISABLED, userId, { action: 'disabled' }).catch(() => {});
+        await this.audit.log(Logs.MFA_DISABLED, userId, { action: 'disabled' }).catch(() => {});
         return { disabled: true };
     }
 }

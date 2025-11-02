@@ -1,8 +1,10 @@
 
 import {IsString, IsOptional, IsMongoId, IsObject, IsDate, IsEnum, Min, IsInt} from 'class-validator';
 import {Type} from "class-transformer";
-import {AuditEvent} from "../Model/Audit-Log";
+
 import {ApiProperty, ApiPropertyOptional} from "@nestjs/swagger";
+import {Logs} from "../Model/Logs";
+
 
 
 
@@ -12,9 +14,9 @@ export class CreateAuditLogDto {
     @IsOptional()
     userId?: string;
 
-    @ApiProperty({ enum: Object.values(AuditEvent), description: 'The audit event type' })
-    @IsEnum(AuditEvent)
-    event!: AuditEvent;
+    @ApiProperty({ enum: Object.values(Logs), description: 'The audit event type' })
+    @IsEnum(Logs)
+    event!: Logs;
 
     @ApiPropertyOptional({ type: Object, description: 'Arbitrary event details (should be JSON serializable)' })
     @IsObject()
@@ -30,10 +32,10 @@ export class CreateAuditLogDto {
 
 
 export class UpdateAuditLogDto {
-    @ApiPropertyOptional({ enum: Object.values(AuditEvent) })
-    @IsEnum(AuditEvent)
+    @ApiPropertyOptional({ enum: Object.values(Logs) })
+    @IsEnum(Logs)
     @IsOptional()
-    event?: AuditEvent;
+    event?: Logs;
 
     @ApiPropertyOptional({ type: Object })
     @IsObject()
@@ -43,10 +45,10 @@ export class UpdateAuditLogDto {
 
 
 export class ListAuditQueryDto {
-    @ApiPropertyOptional({ enum: Object.values(AuditEvent), description: 'Filter by event type' })
+    @ApiPropertyOptional({ enum: Object.values(Logs), description: 'Filter by event type' })
     @IsOptional()
-    @IsEnum(AuditEvent)
-    event?: AuditEvent;
+    @IsEnum(Logs)
+    event?: Logs;
 
     @ApiPropertyOptional({ example: '64b8f7a0c2f4e9b3f1a2d3c4' })
     @IsOptional()

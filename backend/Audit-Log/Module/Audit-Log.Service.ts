@@ -1,8 +1,10 @@
 import {BadRequestException, Injectable, NotFoundException} from '@nestjs/common';
 import {InjectModel} from '@nestjs/mongoose';
 import {FilterQuery, Model, Types} from 'mongoose';
-import {AuditEvent, AuditLog, AuditLogDocument} from "../Model/Audit-Log";
+import { AuditLog, AuditLogDocument} from "../Model/Audit-Log";
 import {CreateAuditLogDto, UpdateAuditLogDto} from "../Validator/Audit-Log.Validator";
+import {Logs} from "../Model/Logs";
+
 
 
 @Injectable()
@@ -13,7 +15,7 @@ export class AuditLogService {
     ) {}
 
 
-    async log(event: AuditEvent, userId?: string | Types.ObjectId, details?: Record<string, any>) {
+    async log(event: Logs, userId?: string | Types.ObjectId, details?: Record<string, any>) {
         return this.auditModel.create({
             event,
             userId: userId ? new Types.ObjectId(userId) : undefined,
@@ -30,7 +32,7 @@ export class AuditLogService {
         }
     }
 
-    async record(event: AuditEvent, userId?: string, details?: Record<string, any>) {
+    async record(event: Logs, userId?: string, details?: Record<string, any>) {
         return this.log(event, userId, details);
     }
 
@@ -79,7 +81,7 @@ export class AuditLogService {
         return { items, total, page, limit };
     }
 
-    async findByEvent(event: AuditEvent, page = 1, limit = 20, from?: string, to?: string) {
+    async findByEvent(event: Logs, page = 1, limit = 20, from?: string, to?: string) {
         return this.findAll(page, limit, { event, from, to });
     }
 
