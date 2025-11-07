@@ -9,6 +9,10 @@ import {AuditLogModule} from "../Audit-Log/Module/Audit-Log.Module";
 import {BackupModule} from "../Backup/Module/Backup-Module";
 import {RolesGuard} from "../Authentication/Guards/Roles-Guard";
 import {JwtAuthGuard} from "../Authentication/Guards/Authentication-Guard";
+import {NotificationModule} from "../Communication/Notification/Module/Notification-Module";
+import {ChatModule} from "../Communication/Chat/Module/Chat-Module";
+import {FeedbackModule} from "../Communication/Feedback/Module/Feedback-Module";
+import {AdminModule} from "../Admin/Module/Admin-Module";
 
 
 @Module({
@@ -23,12 +27,14 @@ import {JwtAuthGuard} from "../Authentication/Guards/Authentication-Guard";
             inject: [ConfigService],
         }),
         AuditLogModule,
-
         AuthModule,
-
         UserModule,
+        BackupModule,
+        NotificationModule,
+        ChatModule,
+        FeedbackModule,
+        AdminModule,
 
-       BackupModule,
 
     ],
     providers: [

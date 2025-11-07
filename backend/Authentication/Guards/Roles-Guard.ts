@@ -21,13 +21,12 @@
 //     }
 // }
 
-
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserRole } from '../../User/Model/User';
 import { ROLES_KEY } from '../Decorators/Roles-Decorator';
 import { AuditLogService } from '../../Audit-Log/Module/Audit-Log.Service';
-import { Logs} from "../../Audit-Log/Model/Logs";
+import { Logs } from '../../Audit-Log/Model/Logs';
 
 
 @Injectable()
