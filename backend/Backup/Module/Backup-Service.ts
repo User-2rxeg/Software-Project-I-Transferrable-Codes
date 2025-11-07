@@ -17,6 +17,7 @@ export interface BackupMetadata {
     timestamp: Date;
     size: number;
     path: string;
+    options?: BackupOptions;
 }
 
 
@@ -79,6 +80,11 @@ export class BackupService {
             await this.convertBackupToJson(backupPath);
             this.logger.log(`JSON conversion completed`);
 
+            // Clean up BSON and metadata files
+            this.logger.log(`Cleaning up BSON and metadata files...`);
+            await this.cleanupBsonAndMetadataFiles(backupPath);
+            this.logger.log(`Cleanup completed`);
+
             // Get backup directory size
             const size = await this.getDirectorySize(backupPath);
 
@@ -87,6 +93,7 @@ export class BackupService {
                 timestamp,
                 size,
                 path: backupPath,
+                options,
             };
 
             this.logger.log(
@@ -107,8 +114,30 @@ export class BackupService {
 
     private async convertBackupToJson(backupPath: string): Promise<void> {
         try {
-            const dbPath = join(backupPath, 'Softwarecodes');
+            // Get all directories in the backup path (these are database names)
+            const files = await fs.readdir(backupPath, { withFileTypes: true });
+            const dbDirs = files.filter(f => f.isDirectory()).map(f => f.name);
 
+            if (dbDirs.length === 0) {
+                this.logger.warn(`No database directories found in backup: ${backupPath}`);
+                return;
+            }
+
+            this.logger.log(`Found ${dbDirs.length} database(s) to convert: ${dbDirs.join(', ')}`);
+
+            for (const dbDir of dbDirs) {
+                const dbPath = join(backupPath, dbDir);
+                await this.convertDatabaseToJson(dbPath, dbDir);
+            }
+        } catch (error) {
+            this.logger.warn(
+                `JSON conversion failed: ${error instanceof Error ? error.message : String(error)}`
+            );
+        }
+    }
+
+    private async convertDatabaseToJson(dbPath: string, dbName: string): Promise<void> {
+        try {
             if (!(await this.pathExists(dbPath))) {
                 this.logger.warn(`Database path not found: ${dbPath}`);
                 return;
@@ -116,6 +145,13 @@ export class BackupService {
 
             const files = await fs.readdir(dbPath);
             const bsonFiles = files.filter(f => f.endsWith('.bson'));
+
+            if (bsonFiles.length === 0) {
+                this.logger.warn(`No BSON files found in ${dbName}`);
+                return;
+            }
+
+            this.logger.log(`Converting ${bsonFiles.length} collection(s) in database: ${dbName}`);
 
             for (const bsonFile of bsonFiles) {
                 const bsonPath = join(dbPath, bsonFile);
@@ -143,14 +179,41 @@ export class BackupService {
                         'utf-8'
                     );
 
-                    this.logger.debug(`Converted ${bsonFile} to ${jsonFile}`);
+                    this.logger.debug(`Converted ${dbName}.${bsonFile} to ${jsonFile}`);
                 } catch (err) {
                     this.logger.warn(`Failed to convert ${bsonFile}: ${err instanceof Error ? err.message : String(err)}`);
                 }
             }
         } catch (error) {
             this.logger.warn(
-                `JSON conversion failed: ${error instanceof Error ? error.message : String(error)}`
+                `Database conversion failed for ${dbName}: ${error instanceof Error ? error.message : String(error)}`
+            );
+        }
+    }
+
+    private async cleanupBsonAndMetadataFiles(backupPath: string): Promise<void> {
+        try {
+            // Recursively delete all .bson and .metadata.json files
+            const deleteRecursive = async (dir: string) => {
+                const files = await fs.readdir(dir, { withFileTypes: true });
+
+                for (const file of files) {
+                    const filePath = join(dir, file.name);
+
+                    if (file.isDirectory()) {
+                        await deleteRecursive(filePath);
+                    } else if (file.name.endsWith('.bson') || file.name.endsWith('.metadata.json')) {
+                        await fs.unlink(filePath);
+                        this.logger.debug(`Deleted: ${file.name}`);
+                    }
+                }
+            };
+
+            await deleteRecursive(backupPath);
+            this.logger.log(`Successfully cleaned up BSON and metadata files from ${backupPath}`);
+        } catch (error) {
+            this.logger.warn(
+                `Failed to cleanup BSON and metadata files: ${error instanceof Error ? error.message : String(error)}`
             );
         }
     }
@@ -162,6 +225,7 @@ export class BackupService {
         } catch {
             return false;
         }
+
     }
 
     async listBackups(): Promise<BackupMetadata[]> {

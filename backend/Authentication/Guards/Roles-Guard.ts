@@ -63,6 +63,13 @@ export class RolesGuard implements CanActivate {
                 requiredRoles,
                 reason: 'FORBIDDEN_ROLE',
             }).catch(() => {});
+        } else {
+            // Log successful role authorization
+            await this.audit.log(Logs.RBAC_AUTHORIZED, user.sub, {
+                userRole: user.role,
+                requiredRoles,
+                reason: 'AUTHORIZED',
+            }).catch(() => {});
         }
 
         return allowed;
