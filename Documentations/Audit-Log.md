@@ -451,7 +451,7 @@ Delete audit logs older than specified days (for cleanup).
 ### Using AuditLogService in Your Code
 
 ```typescript
-import { AuditLogService } from './Audit-Log/Module/Audit-Log.Service';
+import { AuditLogService } from './Audit-Log/Feature/Audit-Log.Service';
 import { Logs } from './Audit-Log/Model/Logs';
 
 @Injectable()

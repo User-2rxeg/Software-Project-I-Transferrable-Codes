@@ -12,7 +12,7 @@ import {RolesGuard} from "../../Authentication/Guards/Roles-Guard";
 import {Roles} from "../../Authentication/Decorators/Roles-Decorator";
 import {AdminService} from "./Admin-Service";
 import {UserRole} from "../../User/Model/User";
-import {AnnounceAllDto, AnnounceRoleDto, UpdateUserRoleBodyDto} from "../Validator/Admin-Validator";
+import {AnnounceAllDto, AnnounceRoleDto, UpdateUserRoleBodyDto} from "../dto/Admin-Validator";
 import {CurrentUser} from "../../Authentication/Decorators/Current-User";
 import {UserService} from "../../User/Module/User-Service";
 
@@ -76,13 +76,6 @@ export class AdminController {
         return this.users.updateUserRole(id, body.role);
     }
 
-    @ApiOperation({ summary: 'Export users as CSV (downloads file)' })
-    @ApiOkResponse({ description: 'CSV file download' })
-    @Get('users/export')
-    async exportUsers(@Res() res: Response) {
-        const { filepath } = await this.admin.exportUsersCSV();
-        res.download(filepath, path.basename(filepath));
-    }
 
     @ApiOperation({ summary: 'Get admin metrics/summary' })
     @Get('metrics')
@@ -99,19 +92,7 @@ export class AdminController {
         return this.admin.securityOverview({ limit: Number(limit ?? '50'), from, to });
     }
 
-    @ApiOperation({ summary: 'Send announcement to all users' })
-    @ApiCreatedResponse({ description: 'Announcement queued' })
-    @Post('announce/all')
-    announceAll(@Body() body: AnnounceAllDto, @CurrentUser() adminUser: any) {
-        return this.admin.announceAll(adminUser.sub, body.message);
-    }
 
-    @ApiOperation({ summary: 'Send announcement to a role' })
-    @ApiCreatedResponse({ description: 'Announcement queued to role' })
-    @Post('announce/role')
-    announceRole(@Body() body: AnnounceRoleDto, @CurrentUser() adminUser: any) {
-        return this.admin.announceRole(adminUser.sub, body.role, body.message);
-    }
 
 }
 

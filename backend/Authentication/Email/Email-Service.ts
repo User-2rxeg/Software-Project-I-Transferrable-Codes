@@ -94,24 +94,4 @@ export class MailService {
         return this.transporter.sendMail(mailOptions);
     }
 
-    async sendNotificationEmail(email: string, subject: string, messageHtmlOrText: string) {
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject,
-            html: `<div>${messageHtmlOrText}</div>`,
-        };
-        return this.transporter.sendMail(mailOptions);
-    }
-
-
-    async sendFeedbackEmail(to: string, subject: string, html: string) {
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to,
-            subject,
-            html,
-        };
-        return this.transporter.sendMail(mailOptions);
-    }
 }

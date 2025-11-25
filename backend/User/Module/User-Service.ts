@@ -20,8 +20,6 @@ export class UserService {
     private toPublic(doc: UserDocument) {
         const o = doc.toObject ? doc.toObject() : doc;
         delete (o as any).passwordHash;
-        delete (o as any).mfaSecret;
-        delete (o as any).mfaBackupCodes;
         return o;
     }
 
@@ -119,16 +117,6 @@ export class UserService {
     async findByIdSelectSecret(id: string): Promise<UserDocument | null> {
         // include hidden fields
         return this.userModel.findById(id).select('+mfaSecret +mfaBackupCodes').exec();
-    }
-
-    async consumeBackupCode(userId: string, code: string): Promise<boolean> {
-        const user = await this.userModel.findById(userId).select('+mfaBackupCodes').exec();
-        if (!user?.mfaBackupCodes?.length) return false;
-        const idx = user.mfaBackupCodes.indexOf(code);
-        if (idx === -1) return false;
-        user.mfaBackupCodes.splice(idx, 1);
-        await user.save();
-        return true;
     }
 
 

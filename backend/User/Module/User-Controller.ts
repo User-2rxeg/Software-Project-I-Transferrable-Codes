@@ -72,7 +72,6 @@ export class UserController {
         return { success: true };
     }
 
-    // Admin/Instructor search endpoints
     @UseGuards(RolesGuard)
     @Roles(UserRole.INSTRUCTOR, UserRole.ADMIN)
     @ApiOperation({ summary: 'Search users (Admin/Instructor)' })

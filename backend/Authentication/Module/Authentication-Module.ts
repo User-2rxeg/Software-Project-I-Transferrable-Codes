@@ -7,10 +7,10 @@ import {BlacklistedToken, BlacklistedTokenSchema} from "../Token/blacklisted-tok
 import {UserModule} from "../../User/Module/User-Module";
 import {AuthService} from "./Authentication-Service";
 import {JwtStrategy} from "../Strategies/JWT-Strategies";
-import {TempJwtStrategy} from "../Strategies/MFA-JWT-Strategies";
-import {TempJwtGuard} from "../Guards/MFA-Guard";
+
 import {JwtAuthGuard} from "../Guards/Authentication-Guard";
 import {AuthController} from "./Authentication-Controller";
+import {RolesGuard} from "../Guards/Roles-Guard";
 
 
 
@@ -30,7 +30,7 @@ import {AuthController} from "./Authentication-Controller";
         forwardRef(() => UserModule),
     ],
     controllers: [AuthController],
-    providers: [AuthService, JwtStrategy, TempJwtStrategy, TempJwtGuard, JwtAuthGuard],
-    exports: [AuthService, JwtModule, JwtAuthGuard],
+    providers: [AuthService, JwtStrategy, RolesGuard, JwtAuthGuard],
+    exports: [AuthService, JwtModule, JwtAuthGuard, RolesGuard],
 })
 export class AuthModule {}
